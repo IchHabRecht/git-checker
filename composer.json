@@ -1,0 +1,9 @@
+{
+    "require": {
+        "slim/slim": "^3.1",
+        "symfony/finder": "^3.0",
+        "symfony/process": "^3.0",
+        "symfony/yaml": "^3.0",
+        "twbs/bootstrap": "^3.3"
+    }
+}
