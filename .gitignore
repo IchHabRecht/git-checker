@@ -1,4 +1,5 @@
 .idea
+public/css/bootstrap.min.css
 var/cache/twig/*
 ^var/cache/twig/.gitkeep
 vendor/
