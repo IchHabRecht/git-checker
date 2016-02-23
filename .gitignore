@@ -1,3 +1,5 @@
 .idea
+var/cache/twig/*
+^var/cache/twig/.gitkeep
 vendor/
 composer.lock
