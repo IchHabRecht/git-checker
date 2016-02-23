@@ -1,8 +1,21 @@
 {% extends 'base.twig' %}
 
-{% block title %}Hello World{% endblock %}
+{% block title %}Git Checker - Root{% endblock %}
 
 {% block content %}
-    <h1>{{ block('title') }}</h1>
-    <p>{{ settings.root }}</p>
+    <div class="page-header">
+        <h1>{{ root }}</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            {% if directories|length > 0 %}
+                <ul class="list-group">
+                    {% for directory in directories %}
+                        <li class="list-group-item">{{ directory.getFilename }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}
