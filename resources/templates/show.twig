@@ -1,0 +1,22 @@
+{% extends 'base.twig' %}
+
+{% block title %}Git Checker - {{ path }}{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>{{ path }}</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            {% if repositories|length > 0 %}
+                <ul class="list-group">
+                    {% for repository in repositories %}
+                        <li class="list-group-item">{{ repository.getRelativePath }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

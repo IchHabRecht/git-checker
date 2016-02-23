@@ -6,6 +6,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Container;
 use Slim\Views\Twig;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 class DirectoryController
 {
@@ -47,6 +48,48 @@ class DirectoryController
                 'settings' => $settings,
                 'root' => $root,
                 'directories' => $finder,
+            ]
+        );
+
+        return $response;
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $arguments
+     * @return Response
+     */
+    public function show(Request $request, Response $response, array $arguments)
+    {
+        $settings = $request->getAttribute('settings');
+        $root = rtrim(strtr($settings['root'], '\\', '/'), '/') . '/';
+        $path = $root . trim($arguments['path'], '/') . '/';
+
+        if (!@is_dir($path)) {
+            throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
+        }
+
+        $finder = new Finder();
+        $finder->directories()
+            ->ignoreUnreadableDirs(true)
+            ->ignoreDotFiles(false)
+            ->ignoreVCS(false)
+            ->followLinks()
+            ->name('.git')
+            ->depth('< 4')
+            ->sort(function (SplFileInfo $a, SplFileInfo $b) {
+                return strcmp($a->getRelativePath(), $b->getRelativePath());
+            })
+            ->in($path);
+
+        $this->view->render(
+            $response,
+            'show.twig',
+            [
+                'settings' => $settings,
+                'path' => $path,
+                'repositories' => $finder,
             ]
         );
 

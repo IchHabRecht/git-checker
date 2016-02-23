@@ -1,0 +1,20 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+	RewriteCond $0#%{REQUEST_URI} ([^#]*)#(.*)\1$
+	RewriteRule ^.*$ - [E=CWD:%2]
+
+	# Block access to all hidden files and directories with the exception of
+	# the visible content from within the `/.well-known/` hidden directory (RFC 5785).
+	RewriteCond %{REQUEST_URI} "!(^|/)\.well-known/([^./]+./?)+$" [NC]
+	RewriteCond %{SCRIPT_FILENAME} -d [OR]
+	RewriteCond %{SCRIPT_FILENAME} -f
+	RewriteRule (?:^|/)\. - [F]
+
+
+	# If the file/symlink/directory does not exist => Redirect to index.php.
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_FILENAME} !-l
+	RewriteRule ^.*$ %{ENV:CWD}index.php [QSA,L]
+</IfModule>

@@ -12,7 +12,7 @@
             {% if directories|length > 0 %}
                 <ul class="list-group">
                     {% for directory in directories %}
-                        <li class="list-group-item">{{ directory.getFilename }}</li>
+                        <a href="{{ path_for('show', { 'path': directory.getFilename }) }}" class="list-group-item">{{ directory.getFilename }}</a>
                     {% endfor %}
                 </ul>
             {% endif %}
