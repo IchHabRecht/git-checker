@@ -1,4 +1,9 @@
 {
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
     "require": {
         "slim/slim": "^3.1",
         "symfony/finder": "^3.0",
