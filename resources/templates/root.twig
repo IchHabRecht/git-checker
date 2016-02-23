@@ -1,1 +1,7 @@
-Hello World
+{% extends 'base.twig' %}
+
+{% block title %}Hello World{% endblock %}
+
+{% block content %}
+    <h1>{{ block('title') }}</h1>
+{% endblock %}
