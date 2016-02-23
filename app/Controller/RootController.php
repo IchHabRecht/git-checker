@@ -29,7 +29,15 @@ class RootController
      */
     public function dispatch(Request $request, Response $response, array $arguments)
     {
-        $this->view->render($response, 'root.twig');
+        $settings = $request->getAttribute('settings');
+
+        $this->view->render(
+            $response,
+            'root.twig',
+            [
+                'settings' => $settings
+            ]
+        );
 
         return $response;
     }
