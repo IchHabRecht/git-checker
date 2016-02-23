@@ -7,7 +7,7 @@ use Slim\Container;
 use Slim\Views\Twig;
 use Symfony\Component\Finder\Finder;
 
-class RootController
+class DirectoryController
 {
     /**
      * @var Twig
@@ -28,7 +28,7 @@ class RootController
      * @param array $arguments
      * @return Response
      */
-    public function dispatch(Request $request, Response $response, array $arguments)
+    public function index(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
         $root = rtrim(strtr($settings['root'], '\\', '/'), '/') . '/';
@@ -42,7 +42,7 @@ class RootController
 
         $this->view->render(
             $response,
-            'root.twig',
+            'index.twig',
             [
                 'settings' => $settings,
                 'root' => $root,

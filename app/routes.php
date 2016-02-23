@@ -1,3 +1,3 @@
 <?php
 
-$app->get('/', \App\Controller\RootController::class . ':dispatch');
+$app->get('/', \App\Controller\DirectoryController::class . ':index');
