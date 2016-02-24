@@ -85,6 +85,9 @@ class DirectoryController
             ->in($path);
 
         $gitWrapper = new GitWrapper();
+        if (!empty($settings['git-wrapper']['git-binary'])) {
+            $gitWrapper->setGitBinary($settings['git-wrapper']['git-binary']);
+        }
         $repositories = [];
         /** @var SplFileInfo $directory */
         foreach ($finder as $directory) {

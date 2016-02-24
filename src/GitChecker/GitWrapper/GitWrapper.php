@@ -17,6 +17,14 @@ class GitWrapper
     }
 
     /**
+     * @param string $gitBinary
+     */
+    public function setGitBinary($gitBinary)
+    {
+        $this->gitBinary = $gitBinary;
+    }
+
+    /**
      * @param string $command
      * @param array $options
      * @param array $arguments
