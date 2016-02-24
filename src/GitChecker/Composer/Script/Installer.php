@@ -34,7 +34,9 @@ class Installer
         $rootDirectory = __DIR__ . '/../../../../';
         static::copyFile('twbs/bootstrap', 'dist/css/bootstrap.min.css', $rootDirectory . 'public/css/bootstrap.min.css');
         static::mirrorDirectory('twbs/bootstrap', 'dist/fonts', $rootDirectory . 'public/fonts');
-        static::getFileSystem()->copy($rootDirectory . 'app/settings.example.yml', $rootDirectory . 'app/settings.yml');
+        if (!file_exists($rootDirectory . 'app/settings.yml')) {
+            static::getFileSystem()->copy($rootDirectory . 'app/settings.example.yml', $rootDirectory . 'app/settings.yml', true);
+        }
     }
 
     /**
@@ -45,6 +47,9 @@ class Installer
      */
     protected static function copyFile($packageName, $sourceFile, $targetFile, $override = false)
     {
+        if (!$override && file_exists($targetFile)) {
+            return;
+        }
         $packages = static::$localRepository->findPackages($packageName, null);
         foreach ($packages as $package) {
             if (static::$installationManager->getInstaller($package->getType())->isInstalled(static::$localRepository, $package)) {
