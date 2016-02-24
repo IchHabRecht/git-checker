@@ -33,6 +33,7 @@ class Installer
 
         $rootDirectory = __DIR__ . '/../../../../';
         static::copyFile('twbs/bootstrap', 'dist/css/bootstrap.min.css', $rootDirectory . 'public/css/bootstrap.min.css');
+        static::mirrorDirectory('twbs/bootstrap', 'dist/fonts', $rootDirectory . 'public/fonts');
         static::getFileSystem()->copy($rootDirectory . 'app/settings.example.yml', $rootDirectory . 'app/settings.yml');
     }
 
@@ -52,6 +53,31 @@ class Installer
                     $targetFile,
                     $override
                 );
+
+                return;
+            }
+        }
+    }
+
+    /**
+     * @param string $packageName
+     * @param string $sourceDirectory
+     * @param string $targetDirectory
+     */
+    protected static function mirrorDirectory($packageName, $sourceDirectory, $targetDirectory)
+    {
+        $packages = static::$localRepository->findPackages($packageName, null);
+        foreach ($packages as $package) {
+            if (static::$installationManager->getInstaller($package->getType())->isInstalled(static::$localRepository, $package)) {
+                static::getFileSystem()->mirror(
+                    static::$installationManager->getInstallPath($package) . '/' . ltrim($sourceDirectory, '/'),
+                    $targetDirectory,
+                    null,
+                    [
+                        'copy_on_windows',
+                    ]
+                );
+
                 return;
             }
         }

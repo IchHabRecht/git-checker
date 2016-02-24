@@ -1,6 +1,7 @@
 .idea
 app/settings.yml
-public/css/bootstrap.min.css
+public/css/
+public/fonts/
 var/cache/twig/*
 ^var/cache/twig/.gitkeep
 vendor/
