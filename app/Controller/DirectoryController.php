@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use GitChecker\GitWrapper\GitWrapper;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Container;
@@ -83,13 +84,27 @@ class DirectoryController
             })
             ->in($path);
 
+        $gitWrapper = new GitWrapper();
+        $repositories = [];
+        /** @var SplFileInfo $directory */
+        foreach ($finder as $directory) {
+            $relativePath = trim(strtr($directory->getRelativePath(), '\\', '/'), '/');
+            $gitRepository = $gitWrapper->getRepository($path . $relativePath . '/');
+            $repositories[] = [
+                'relativePath' => $relativePath,
+                'status' => $gitRepository->getStatus(),
+                'trackingInformation' => $gitRepository->getTrackingInformation(),
+            ];
+        }
+        unset($directory);
+
         $this->view->render(
             $response,
             'show.twig',
             [
                 'settings' => $settings,
                 'path' => $path,
-                'repositories' => $finder,
+                'repositories' => $repositories,
             ]
         );
 
