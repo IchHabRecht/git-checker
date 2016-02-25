@@ -26,6 +26,7 @@
                             <li class="list-group-item">{{ repository.relativePath }}
                                 <span class="label label-default">{{ repository.trackingInformation.branch }}</span>
                                 <span><span class="badge">{{ repository.trackingInformation.behind }}</span></span>
+                                <a href="{{ path_for('fetch', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="pull-right"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
                                 {% if not repository.status %}
                                     <span class="label label-success">clean</span>
                                 {% else %}

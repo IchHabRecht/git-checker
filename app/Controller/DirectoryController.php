@@ -109,7 +109,12 @@ class DirectoryController
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
         $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts']);
+        $repository = null;
+        if (isset($arguments['repository'])) {
+            $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+        }
+
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         /** @var SplFileInfo $directory */
@@ -162,9 +167,10 @@ class DirectoryController
      * @param string $root
      * @param string $virtualHost
      * @param array $settings
+     * @param string|null $repository
      * @return Finder
      */
-    protected function getRepositoryFinder($root, $virtualHost, array $settings)
+    protected function getRepositoryFinder($root, $virtualHost, array $settings, $repository = null)
     {
         $root = rtrim($root, '/\\');
         $virtualHost = trim($virtualHost, '/\\');
@@ -193,6 +199,21 @@ class DirectoryController
                 return strcmp($a->getRelativePath(), $b->getRelativePath());
             })
             ->in($absolutePath);
+
+        if ($repository) {
+            $repository = trim($repository, '/\\');
+            $absolutePath .= DIRECTORY_SEPARATOR . $repository;
+            if (!@is_dir($absolutePath)) {
+                throw  new \InvalidArgumentException('Wrong repository path provided', 1456433944431);
+            }
+
+            $finder->depth(0)
+                ->in($absolutePath);
+
+            if (count($finder) !== 1) {
+                throw new \RuntimeException('Unexpected repository count found', 1456433999553);
+            }
+        }
 
         return $finder;
     }
