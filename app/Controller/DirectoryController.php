@@ -67,24 +67,8 @@ class DirectoryController
         $settings = $request->getAttribute('settings');
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
         $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
-        $absolutePath = $root . $virtualHost;
 
-        if (!@is_dir($absolutePath)) {
-            throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
-        }
-
-        $finder = new Finder();
-        $finder->directories()
-            ->ignoreUnreadableDirs(true)
-            ->ignoreDotFiles(false)
-            ->ignoreVCS(false)
-            ->followLinks()
-            ->name('.git')
-            ->depth('< 4')
-            ->sort(function (SplFileInfo $a, SplFileInfo $b) {
-                return strcmp($a->getRelativePath(), $b->getRelativePath());
-            })
-            ->in($absolutePath);
+        $finder = $this->getRepositoryFinder($root, $virtualHost);
 
         $gitWrapper = new GitWrapper();
         if (!empty($settings['git-wrapper']['git-binary'])) {
@@ -94,7 +78,7 @@ class DirectoryController
         /** @var SplFileInfo $directory */
         foreach ($finder as $directory) {
             $relativePath = trim($directory->getRelativePath(), '/\\');
-            $gitRepository = $gitWrapper->getRepository($absolutePath . $relativePath . DIRECTORY_SEPARATOR);
+            $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
             $repositories[] = [
                 'relativePath' => $relativePath,
                 'status' => $gitRepository->getStatus(),
@@ -127,24 +111,8 @@ class DirectoryController
         $settings = $request->getAttribute('settings');
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
         $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
-        $absolutePath = $root . $virtualHost;
 
-        if (!@is_dir($absolutePath)) {
-            throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
-        }
-
-        $finder = new Finder();
-        $finder->directories()
-            ->ignoreUnreadableDirs(true)
-            ->ignoreDotFiles(false)
-            ->ignoreVCS(false)
-            ->followLinks()
-            ->name('.git')
-            ->depth('< 4')
-            ->sort(function (SplFileInfo $a, SplFileInfo $b) {
-                return strcmp($a->getRelativePath(), $b->getRelativePath());
-            })
-            ->in($absolutePath);
+        $finder = $this->getRepositoryFinder($root, $virtualHost);
 
         $gitWrapper = new GitWrapper();
         if (!empty($settings['git-wrapper']['git-binary'])) {
@@ -152,8 +120,7 @@ class DirectoryController
         }
         /** @var SplFileInfo $directory */
         foreach ($finder as $directory) {
-            $relativePath = trim($directory->getRelativePath(), '/\\');
-            $gitRepository = $gitWrapper->getRepository($absolutePath . $relativePath . DIRECTORY_SEPARATOR);
+            $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
             $gitRepository->fetch(['no-tags'], ['origin']);
         }
 
@@ -178,5 +145,35 @@ class DirectoryController
     protected function getApplication()
     {
         return $GLOBALS['app'];
+    }
+
+    /**
+     * @param string $root
+     * @param string $virtualHost
+     * @return Finder
+     */
+    protected function getRepositoryFinder($root, $virtualHost)
+    {
+        $root = rtrim($root, '/\\');
+        $virtualHost = trim($virtualHost, '/\\');
+        $absolutePath = $root . DIRECTORY_SEPARATOR . $virtualHost;
+        if (!@is_dir($absolutePath)) {
+            throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
+        }
+
+        $finder = new Finder();
+        $finder->directories()
+            ->ignoreUnreadableDirs(true)
+            ->ignoreDotFiles(false)
+            ->ignoreVCS(false)
+            ->followLinks()
+            ->name('.git')
+            ->depth('< 4')
+            ->sort(function (SplFileInfo $a, SplFileInfo $b) {
+                return strcmp($a->getRelativePath(), $b->getRelativePath());
+            })
+            ->in($absolutePath);
+
+        return $finder;
     }
 }
