@@ -70,10 +70,7 @@ class DirectoryController
 
         $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts']);
 
-        $gitWrapper = new GitWrapper();
-        if (!empty($settings['git-wrapper']['git-binary'])) {
-            $gitWrapper->setGitBinary($settings['git-wrapper']['git-binary']);
-        }
+        $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         $repositories = [];
         /** @var SplFileInfo $directory */
         foreach ($finder as $directory) {
@@ -114,10 +111,7 @@ class DirectoryController
 
         $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts']);
 
-        $gitWrapper = new GitWrapper();
-        if (!empty($settings['git-wrapper']['git-binary'])) {
-            $gitWrapper->setGitBinary($settings['git-wrapper']['git-binary']);
-        }
+        $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         /** @var SplFileInfo $directory */
         foreach ($finder as $directory) {
             $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
@@ -145,6 +139,23 @@ class DirectoryController
     protected function getApplication()
     {
         return $GLOBALS['app'];
+    }
+
+    /**
+     * @param array $settings
+     * @return GitWrapper
+     */
+    protected function getGitWrapper(array $settings)
+    {
+        $gitWrapper = new GitWrapper();
+        if (!empty($settings['git-binary'])) {
+            $gitWrapper->setGitBinary($settings['git-binary']);
+        }
+        if (!empty($settings['env-vars'])) {
+            $gitWrapper->setEnvVars($settings['env-vars']);
+        }
+
+        return $gitWrapper;
     }
 
     /**

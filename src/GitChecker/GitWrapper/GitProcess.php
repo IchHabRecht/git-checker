@@ -7,14 +7,20 @@ use Symfony\Component\Process\ProcessUtils;
 class GitProcess extends Process
 {
     /**
-     * @param string $gitBinary
+     * @param GitWrapper $gitWrapper
      * @param GitCommand $gitCommand
      */
-    public function __construct($gitBinary, GitCommand $gitCommand)
+    public function __construct(GitWrapper $gitWrapper, GitCommand $gitCommand)
     {
-        $commandLine = ProcessUtils::escapeArgument($gitBinary) . ' ' . $gitCommand->getCommandLine();
+        $commandLine = ProcessUtils::escapeArgument($gitWrapper->getGitBinary()) . ' ' . $gitCommand->getCommandLine();
         $directory = realpath($gitCommand->getDirectory());
 
-        parent::__construct($commandLine, $directory, null, null, $gitCommand->getTimeout());
+        $envVars = null;
+        $wrapperEnvVars = $gitWrapper->getEnvVars();
+        if (!empty($wrapperEnvVars)) {
+            $envVars = array_merge($_ENV, $_SERVER, $wrapperEnvVars);
+        }
+
+        parent::__construct($commandLine, $directory, $envVars, null, $gitCommand->getTimeout());
     }
 }

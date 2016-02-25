@@ -9,6 +9,11 @@ class GitWrapper
     protected $gitBinary;
 
     /**
+     * @var array
+     */
+    protected $envVars = [];
+
+    /**
      * @param string|null $gitBinary
      */
     public function __construct($gitBinary = null)
@@ -17,11 +22,44 @@ class GitWrapper
     }
 
     /**
+     * @return string
+     */
+    public function getGitBinary()
+    {
+        return $this->gitBinary;
+    }
+
+    /**
      * @param string $gitBinary
      */
     public function setGitBinary($gitBinary)
     {
         $this->gitBinary = $gitBinary;
+    }
+
+    /**
+     * @return array
+     */
+    public function getEnvVars()
+    {
+        return $this->envVars;
+    }
+
+    /**
+     * @param array $envVars
+     */
+    public function setEnvVars(array $envVars)
+    {
+        $this->envVars = $envVars;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     */
+    public function setEnvVar($key, $value)
+    {
+        $this->envVars[$key] = $value;
     }
 
     /**
@@ -56,12 +94,12 @@ class GitWrapper
      */
     protected function run(GitCommand $gitCommand)
     {
-        $gitProcess = new GitProcess($this->gitBinary, $gitCommand);
+        $gitProcess = new GitProcess($this, $gitCommand);
         $gitProcess->run();
 
         if (!empty($gitProcess->getExitCode())) {
             throw new \RuntimeException(
-                'Git command "' . $gitCommand->getCommandLine() . '" in "'. $gitCommand->getDirectory() . '" failed with error "' . $gitProcess->getErrorOutput() . '"',
+                'Git command "' . $gitCommand->getCommandLine() . '" in "' . $gitCommand->getDirectory() . '" failed with error "' . $gitProcess->getErrorOutput() . '"',
                 1456365593091
             );
         }
