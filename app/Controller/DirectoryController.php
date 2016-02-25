@@ -33,7 +33,7 @@ class DirectoryController
     public function index(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim(strtr($settings['root'], '\\', '/'), '/') . '/';
+        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
 
         $finder = new Finder();
         $finder->directories()
@@ -64,10 +64,11 @@ class DirectoryController
     public function show(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim(strtr($settings['root'], '\\', '/'), '/') . '/';
-        $path = $root . trim($arguments['path'], '/') . '/';
+        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
+        $path = trim($arguments['path'], '/\\') . DIRECTORY_SEPARATOR;
+        $absolutePath = $root . $path;
 
-        if (!@is_dir($path)) {
+        if (!@is_dir($absolutePath)) {
             throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
         }
 
@@ -82,7 +83,7 @@ class DirectoryController
             ->sort(function (SplFileInfo $a, SplFileInfo $b) {
                 return strcmp($a->getRelativePath(), $b->getRelativePath());
             })
-            ->in($path);
+            ->in($absolutePath);
 
         $gitWrapper = new GitWrapper();
         if (!empty($settings['git-wrapper']['git-binary'])) {
@@ -91,21 +92,21 @@ class DirectoryController
         $repositories = [];
         /** @var SplFileInfo $directory */
         foreach ($finder as $directory) {
-            $relativePath = trim(strtr($directory->getRelativePath(), '\\', '/'), '/');
-            $gitRepository = $gitWrapper->getRepository($path . $relativePath . '/');
+            $relativePath = trim($directory->getRelativePath(), '/\\');
+            $gitRepository = $gitWrapper->getRepository($absolutePath . $relativePath . DIRECTORY_SEPARATOR);
             $repositories[] = [
                 'relativePath' => $relativePath,
                 'status' => $gitRepository->getStatus(),
                 'trackingInformation' => $gitRepository->getTrackingInformation(),
             ];
         }
-        unset($directory);
 
         $this->view->render(
             $response,
             'show.twig',
             [
                 'settings' => $settings,
+                'root' => $root,
                 'path' => $path,
                 'repositories' => $repositories,
             ]
