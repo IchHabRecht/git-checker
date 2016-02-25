@@ -1,3 +1,6 @@
 root: "/var/www/vhosts"
 git-wrapper:
   git-binary:
+virtual-hosts:
+  default:
+    depth: "< 4"

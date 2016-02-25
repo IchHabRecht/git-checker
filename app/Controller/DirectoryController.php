@@ -68,7 +68,7 @@ class DirectoryController
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
         $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts']);
 
         $gitWrapper = new GitWrapper();
         if (!empty($settings['git-wrapper']['git-binary'])) {
@@ -112,7 +112,7 @@ class DirectoryController
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
         $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts']);
 
         $gitWrapper = new GitWrapper();
         if (!empty($settings['git-wrapper']['git-binary'])) {
@@ -150,15 +150,24 @@ class DirectoryController
     /**
      * @param string $root
      * @param string $virtualHost
+     * @param array $settings
      * @return Finder
      */
-    protected function getRepositoryFinder($root, $virtualHost)
+    protected function getRepositoryFinder($root, $virtualHost, array $settings)
     {
         $root = rtrim($root, '/\\');
         $virtualHost = trim($virtualHost, '/\\');
         $absolutePath = $root . DIRECTORY_SEPARATOR . $virtualHost;
         if (!@is_dir($absolutePath)) {
             throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
+        }
+
+        if (!isset($settings['default']['depth'])) {
+            throw new \InvalidArgumentException('Missing default repository configuration', 1456425560002);
+        }
+        $depth = $settings['default']['depth'];
+        if (isset($settings[$virtualHost]['depth'])) {
+            $depth = $settings[$virtualHost]['depth'];
         }
 
         $finder = new Finder();
@@ -168,7 +177,7 @@ class DirectoryController
             ->ignoreVCS(false)
             ->followLinks()
             ->name('.git')
-            ->depth('< 4')
+            ->depth($depth)
             ->sort(function (SplFileInfo $a, SplFileInfo $b) {
                 return strcmp($a->getRelativePath(), $b->getRelativePath());
             })
