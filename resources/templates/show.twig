@@ -21,6 +21,9 @@
                                 <span class="label label-default">{{ repository.trackingInformation.branch }}</span>
                                 <span><span class="badge">{{ repository.trackingInformation.behind }}</span></span>
                                 <div class="btn-group pull-right" role="group">
+                                    {% if repository.trackingInformation.behind %}
+                                        <a href="{{ path_for('pull', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
+                                    {% endif %}
                                     <a href="{{ path_for('fetch', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
                                 </div>
                                 {% if not repository.status %}

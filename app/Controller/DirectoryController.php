@@ -123,19 +123,32 @@ class DirectoryController
             $gitRepository->fetch(['no-tags'], ['origin']);
         }
 
-        return $response->withStatus(301)
-            ->withHeader(
-                'Location',
-                $this->getApplication()
-                    ->getContainer()
-                    ->get('router')
-                    ->PathFor(
-                        'show',
-                        [
-                            'virtualHost' => $arguments['virtualHost'],
-                        ]
-                    )
-            );
+        return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $arguments
+     * @return Response
+     */
+    public function pull(Request $request, Response $response, array $arguments)
+    {
+        $settings = $request->getAttribute('settings');
+        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
+        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
+        $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+
+        $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
+        /** @var SplFileInfo $directory */
+        foreach ($finder as $directory) {
+            $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+            $gitRepository->pull(['ff-only']);
+        }
+
+        return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
 
     /**
@@ -216,5 +229,26 @@ class DirectoryController
         }
 
         return $finder;
+    }
+
+    /**
+     * @param string $route
+     * @param Response $response
+     * @param array $arguments
+     * @return Response
+     */
+    protected function redirectTo($route, Response $response, array $arguments = [])
+    {
+        return $response->withStatus(301)
+            ->withHeader(
+                'Location',
+                $this->getApplication()
+                    ->getContainer()
+                    ->get('router')
+                    ->PathFor(
+                        $route,
+                        $arguments
+                    )
+            );
     }
 }
