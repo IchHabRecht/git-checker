@@ -10,23 +10,19 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <div class="row">
-                        <div class="col-lg-1">
-                            <a href="/"><span aria-hidden="true" class="glyphicon glyphicon-home"></span></a>
-                        </div>
-                        <div class="col-lg-1">
-                            <a href="{{ path_for('fetch', { 'virtualHost': virtualHost|trim('/\\') }) }}"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
-                        </div>
-                    </div>
+                <div class="panel-heading clearfix">
+                    <a href="/" class="btn pull-left"><span aria-hidden="true" class="glyphicon glyphicon-home"></span></a>
+                    <a href="{{ path_for('fetch', { 'virtualHost': virtualHost|trim('/\\') }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
                 </div>
                 {% if repositories|length > 0 %}
                     <ul class="list-group">
                         {% for repository in repositories %}
-                            <li class="list-group-item">{{ repository.relativePath }}
+                            <li class="list-group-item clearfix">{{ repository.relativePath }}
                                 <span class="label label-default">{{ repository.trackingInformation.branch }}</span>
                                 <span><span class="badge">{{ repository.trackingInformation.behind }}</span></span>
-                                <a href="{{ path_for('fetch', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="pull-right"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                                <div class="btn-group pull-right" role="group">
+                                    <a href="{{ path_for('fetch', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                                </div>
                                 {% if not repository.status %}
                                     <span class="label label-success">clean</span>
                                 {% else %}
