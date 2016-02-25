@@ -29,12 +29,14 @@ class GitWrapper
      * @param array $options
      * @param array $arguments
      * @param string|null $directory
+     * @param int|null $timeout
      * @return string
      */
-    public function execute($command, array $options = [], array $arguments = [], $directory = null)
+    public function execute($command, array $options = [], array $arguments = [], $directory = null, $timeout = 60)
     {
         $gitCommand = new GitCommand($command, $options, $arguments);
         $gitCommand->setDirectory($directory);
+        $gitCommand->setTimeout($timeout);
 
         return $this->run($gitCommand);
     }

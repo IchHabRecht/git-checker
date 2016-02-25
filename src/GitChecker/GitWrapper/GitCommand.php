@@ -26,6 +26,11 @@ class GitCommand
     protected $directory;
 
     /**
+     * @var int
+     */
+    protected $timeout;
+
+    /**
      * @param string $command
      * @param array $options
      * @param array $arguments
@@ -53,6 +58,22 @@ class GitCommand
         $this->directory = $directory;
     }
 
+    /**
+     * @return int
+     */
+    public function getTimeout()
+    {
+        return $this->timeout;
+    }
+
+    /**
+     * @param int $timeout
+     */
+    public function setTimeout($timeout)
+    {
+        $this->timeout = $timeout;
+    }
+    
     /**
      * @return string
      */

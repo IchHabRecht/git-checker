@@ -29,6 +29,18 @@ class GitRepository
     }
 
     /**
+     * @param array $options
+     * @param array $arguments
+     * @return string
+     */
+    public function fetch(array $options = [], array $arguments = [])
+    {
+        $this->__lastResult = $this->wrapper->execute('fetch', $options, $arguments, $this->directoy, null);
+
+        return trim($this->__lastResult);
+    }
+
+    /**
      * @return string
      */
     public function getCurrentBranch()

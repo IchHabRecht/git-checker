@@ -15,6 +15,6 @@ class GitProcess extends Process
         $commandLine = ProcessUtils::escapeArgument($gitBinary) . ' ' . $gitCommand->getCommandLine();
         $directory = realpath($gitCommand->getDirectory());
 
-        parent::__construct($commandLine, $directory);
+        parent::__construct($commandLine, $directory, null, null, $gitCommand->getTimeout());
     }
 }
