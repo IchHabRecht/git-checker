@@ -11,7 +11,14 @@
         <div class="col-lg-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <a href="/"><span aria-hidden="true" class="glyphicon glyphicon-home"></span></a>
+                    <div class="row">
+                        <div class="col-lg-1">
+                            <a href="/"><span aria-hidden="true" class="glyphicon glyphicon-home"></span></a>
+                        </div>
+                        <div class="col-lg-1">
+                            <a href="{{ path_for('fetch', { 'path': path|trim('/\\') }) }}"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                        </div>
+                    </div>
                 </div>
                 {% if repositories|length > 0 %}
                     <ul class="list-group">

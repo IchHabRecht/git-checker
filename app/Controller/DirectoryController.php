@@ -4,6 +4,7 @@ namespace App\Controller;
 use GitChecker\GitWrapper\GitWrapper;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
+use Slim\App;
 use Slim\Container;
 use Slim\Views\Twig;
 use Symfony\Component\Finder\Finder;
@@ -113,5 +114,69 @@ class DirectoryController
         );
 
         return $response;
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $arguments
+     * @return Response
+     */
+    public function fetch(Request $request, Response $response, array $arguments)
+    {
+        $settings = $request->getAttribute('settings');
+        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
+        $path = trim($arguments['path'], '/\\') . DIRECTORY_SEPARATOR;
+        $absolutePath = $root . $path;
+
+        if (!@is_dir($absolutePath)) {
+            throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
+        }
+
+        $finder = new Finder();
+        $finder->directories()
+            ->ignoreUnreadableDirs(true)
+            ->ignoreDotFiles(false)
+            ->ignoreVCS(false)
+            ->followLinks()
+            ->name('.git')
+            ->depth('< 4')
+            ->sort(function (SplFileInfo $a, SplFileInfo $b) {
+                return strcmp($a->getRelativePath(), $b->getRelativePath());
+            })
+            ->in($absolutePath);
+
+        $gitWrapper = new GitWrapper();
+        if (!empty($settings['git-wrapper']['git-binary'])) {
+            $gitWrapper->setGitBinary($settings['git-wrapper']['git-binary']);
+        }
+        /** @var SplFileInfo $directory */
+        foreach ($finder as $directory) {
+            $relativePath = trim($directory->getRelativePath(), '/\\');
+            $gitRepository = $gitWrapper->getRepository($absolutePath . $relativePath . DIRECTORY_SEPARATOR);
+            $gitRepository->fetch(['no-tags'], ['origin']);
+        }
+
+        return $response->withStatus(301)
+            ->withHeader(
+                'Location',
+                $this->getApplication()
+                    ->getContainer()
+                    ->get('router')
+                    ->PathFor(
+                        'show',
+                        [
+                            'path' => $arguments['path'],
+                        ]
+                    )
+            );
+    }
+
+    /**
+     * @return App
+     */
+    protected function getApplication()
+    {
+        return $GLOBALS['app'];
     }
 }
