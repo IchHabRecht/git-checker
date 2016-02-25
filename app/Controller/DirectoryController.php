@@ -66,8 +66,8 @@ class DirectoryController
     {
         $settings = $request->getAttribute('settings');
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $path = trim($arguments['path'], '/\\') . DIRECTORY_SEPARATOR;
-        $absolutePath = $root . $path;
+        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
+        $absolutePath = $root . $virtualHost;
 
         if (!@is_dir($absolutePath)) {
             throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
@@ -108,7 +108,7 @@ class DirectoryController
             [
                 'settings' => $settings,
                 'root' => $root,
-                'path' => $path,
+                'virtualHost' => $virtualHost,
                 'repositories' => $repositories,
             ]
         );
@@ -126,8 +126,8 @@ class DirectoryController
     {
         $settings = $request->getAttribute('settings');
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $path = trim($arguments['path'], '/\\') . DIRECTORY_SEPARATOR;
-        $absolutePath = $root . $path;
+        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
+        $absolutePath = $root . $virtualHost;
 
         if (!@is_dir($absolutePath)) {
             throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
@@ -166,7 +166,7 @@ class DirectoryController
                     ->PathFor(
                         'show',
                         [
-                            'path' => $arguments['path'],
+                            'virtualHost' => $arguments['virtualHost'],
                         ]
                     )
             );

@@ -12,7 +12,7 @@
             {% if directories|length > 0 %}
                 <ul class="list-group">
                     {% for directory in directories %}
-                        <a href="{{ path_for('show', { 'path': directory.getFilename }) }}" class="list-group-item">{{ directory.getFilename }}</a>
+                        <a href="{{ path_for('show', { 'virtualHost': directory.getFilename }) }}" class="list-group-item">{{ directory.getFilename }}</a>
                     {% endfor %}
                 </ul>
             {% endif %}
