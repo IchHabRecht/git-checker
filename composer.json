@@ -32,7 +32,7 @@
     "twbs/bootstrap": "^3.3"
   },
   "require-dev": {
-    "composer/composer": "1.0.0-alpha11"
+    "composer/composer": "^1.0.0"
   },
   "scripts": {
     "post-install-cmd": "GitChecker\\Composer\\Script\\Installer::postInstall",
