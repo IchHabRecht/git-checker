@@ -4,4 +4,5 @@ git-wrapper:
   env-vars:
 virtual-hosts:
   default:
-    depth: "< 4"
+    show:
+      depth: "< 4"

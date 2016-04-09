@@ -192,12 +192,12 @@ class DirectoryController
             throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
         }
 
-        if (!isset($settings['default']['depth'])) {
+        if (!isset($settings['default']['show']['depth'])) {
             throw new \InvalidArgumentException('Missing default repository configuration', 1456425560002);
         }
-        $depth = $settings['default']['depth'];
-        if (isset($settings[$virtualHost]['depth'])) {
-            $depth = $settings[$virtualHost]['depth'];
+        $depth = $settings['default']['show']['depth'];
+        if (isset($settings[$virtualHost]['show']['depth'])) {
+            $depth = $settings[$virtualHost]['show']['depth'];
         }
 
         $finder = new Finder();
