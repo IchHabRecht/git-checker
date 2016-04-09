@@ -43,6 +43,14 @@ class DirectoryController
             ->sortByName()
             ->in($root);
 
+        if (!empty($settings['virtual-hosts']['default']['index']['exclude'])
+            && is_array($settings['virtual-hosts']['default']['index']['exclude'])
+        ) {
+            foreach ($settings['virtual-hosts']['default']['index']['exclude'] as $dir) {
+                $finder->notPath(strtr($dir, '\\', '/'));
+            }
+        }
+
         $this->view->render(
             $response,
             'index.twig',
@@ -212,6 +220,19 @@ class DirectoryController
                 return strcmp($a->getRelativePath(), $b->getRelativePath());
             })
             ->in($absolutePath);
+
+        $excludeDirs = null;
+        if (isset($settings['default']['show']['exclude'])) {
+            $excludeDirs = $settings['default']['show']['exclude'];
+        }
+        if (isset($settings[$virtualHost]['show']['exclude'])) {
+            $excludeDirs = $settings[$virtualHost]['show']['exclude'];
+        }
+        if (!empty($excludeDirs) && is_array($excludeDirs)) {
+            foreach ($excludeDirs as $dir) {
+                $finder->notPath(strtr($dir, '\\', '/'));
+            }
+        }
 
         if ($repository) {
             $repository = trim($repository, '/\\');

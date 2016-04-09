@@ -4,5 +4,10 @@ git-wrapper:
   env-vars:
 virtual-hosts:
   default:
+    index:
+      exclude:
+        - "git-checker"
+        - "lost+found"
     show:
       depth: "< 4"
+      exclude:
