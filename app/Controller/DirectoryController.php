@@ -86,6 +86,7 @@ class DirectoryController
             $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
             $repositories[] = [
                 'relativePath' => $relativePath,
+                'commit' => $gitRepository->log(['1', 'oneline']),
                 'status' => $gitRepository->getStatus(),
                 'trackingInformation' => $gitRepository->getTrackingInformation(),
             ];

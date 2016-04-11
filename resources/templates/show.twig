@@ -17,25 +17,39 @@
                 {% if repositories|length > 0 %}
                     <ul class="list-group">
                         {% for repository in repositories %}
-                            <li class="list-group-item clearfix">{{ repository.relativePath }}
-                                <span class="label label-default">{{ repository.trackingInformation.branch }}</span>
-                                <span><span class="badge">{{ repository.trackingInformation.behind }}</span></span>
-                                <div class="btn-group pull-right" role="group">
-                                    {% if repository.trackingInformation.behind and not repository.status %}
-                                        <a href="{{ path_for('pull', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
-                                    {% elseif repository.status %}
-                                        <a href="{{ path_for('reset', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-circle-arrow-down"></span></a>
-                                    {% endif %}
-                                    <a href="{{ path_for('fetch', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                            <li class="list-group-item clearfix">
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <p>
+                                            {{ repository.relativePath }}
+                                            <span class="label label-default">{{ repository.trackingInformation.branch }}</span>
+                                            <span><span class="badge">{{ repository.trackingInformation.behind }}</span></span>
+                                            {% if not repository.status %}
+                                                <span class="label label-success">clean</span>
+                                            {% else %}
+                                                <span class="label label-danger">changed</span>
+                                            {% endif %}
+                                        </p>
+                                        <p>
+                                            <strong>{{ repository.commit }}</strong>
+                                        </p>
+                                        {% if repository.status %}
+                                            <p class="text-muted">
+                                                {{ repository.status|nl2br }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="btn-group pull-right" role="group">
+                                            {% if repository.trackingInformation.behind and not repository.status %}
+                                                <a href="{{ path_for('pull', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
+                                            {% elseif repository.status %}
+                                                <a href="{{ path_for('reset', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-circle-arrow-down"></span></a>
+                                            {% endif %}
+                                            <a href="{{ path_for('fetch', { 'virtualHost': virtualHost|trim('/\\'), 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                                        </div>
+                                    </div>
                                 </div>
-                                {% if not repository.status %}
-                                    <span class="label label-success">clean</span>
-                                {% else %}
-                                    <span class="label label-danger">changed</span>
-                                    <br />
-                                    <br />
-                                    {{ repository.status|nl2br }}
-                                {% endif %}
                             </li>
                         {% endfor %}
                     </ul>
