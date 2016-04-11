@@ -106,6 +106,18 @@ class GitRepository
     }
 
     /**
+     * @param array $options
+     * @param array $arguments
+     * @return string
+     */
+    public function reset(array $options = [], array $arguments = [])
+    {
+        $this->__lastResult = $this->wrapper->execute('reset', $options, $arguments, $this->directoy, null);
+
+        return trim($this->__lastResult);
+    }
+
+    /**
      * @return string
      */
     public function getStatus()

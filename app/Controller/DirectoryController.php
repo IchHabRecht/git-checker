@@ -160,6 +160,32 @@ class DirectoryController
     }
 
     /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $arguments
+     * @return Response
+     */
+    public function reset(Request $request, Response $response, array $arguments)
+    {
+        $settings = $request->getAttribute('settings');
+        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
+        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
+        $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+
+        $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
+        /** @var SplFileInfo $directory */
+        foreach ($finder as $directory) {
+            $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+            $trackingInformation = $gitRepository->getTrackingInformation();
+            $gitRepository->reset(['hard'], ['origin/' . $trackingInformation['branch']]);
+        }
+
+        return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
+    }
+
+    /**
      * @return App
      */
     protected function getApplication()

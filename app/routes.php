@@ -8,4 +8,6 @@ $app->group('/show/{virtualHost}', function () {
         ->setName('fetch');
     $this->get('/pull/{repository:.+}', \App\Controller\DirectoryController::class . ':pull')
         ->setName('pull');
+    $this->get('/reset/{repository:.+}', \App\Controller\DirectoryController::class . ':reset')
+        ->setName('reset');
 });
