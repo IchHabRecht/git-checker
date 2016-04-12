@@ -287,7 +287,7 @@ class DirectoryController
      */
     protected function redirectTo($route, Response $response, array $arguments = [])
     {
-        return $response->withStatus(301)
+        return $response->withStatus(303)
             ->withHeader(
                 'Location',
                 $this->getApplication()
