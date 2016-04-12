@@ -7,7 +7,7 @@
 It's recommended that you use [Composer](https://getcomposer.org/) to install the git-checker.
 
 ```bash
-$ composer create-project ichhabrecht/git-checker
+$ composer create-project ichhabrecht/git-checker --keep-vcs --no-dev
 ```
 
 This will clone and install the git-checker and all required dependencies.
