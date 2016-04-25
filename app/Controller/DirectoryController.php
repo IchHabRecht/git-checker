@@ -258,7 +258,7 @@ class DirectoryController
             ->name('.git')
             ->depth($depth)
             ->sort(function (SplFileInfo $a, SplFileInfo $b) {
-                return strcmp($a->getRelativePath(), $b->getRelativePath());
+                return strcmp($a->getRelativePathname(), $b->getRelativePathname());
             })
             ->in($absolutePath);
 
