@@ -191,14 +191,10 @@ class DirectoryController
             $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
             $trackingInformation = $gitRepository->getTrackingInformation();
             $branch = !empty($trackingInformation['remoteBranch'])
-                ? $trackingInformation['remoteBranch']
-                : empty($trackingInformation['branch'])
-                    ? $trackingInformation['branch']
-                    : '';
-            if (!empty($branch)) {
-                $gitRepository->reset(['hard'], ['origin/' . $branch]);
-                $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
-            }
+                ? 'origin/' . $trackingInformation['remoteBranch']
+                : 'HEAD';
+            $gitRepository->reset(['hard'], [$branch]);
+            $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
