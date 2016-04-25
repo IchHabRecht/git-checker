@@ -89,6 +89,25 @@ class GitWrapper
     }
 
     /**
+     * @param string $cloneUrl
+     * @param string $directory
+     * @param array $options
+     * @param array $arguments
+     * @return GitRepository
+     */
+    public function cloneRepository($cloneUrl, $directory = null, array $options = [], array $arguments = [])
+    {
+        if ($directory === null) {
+            $pathinfo = pathinfo($cloneUrl);
+            $directory = getcwd() . DIRECTORY_SEPARATOR . $pathinfo['filename'];
+        }
+        $gitRepository = new GitRepository($this, $directory);
+        $gitRepository->create($cloneUrl, $options, $arguments);
+
+        return $gitRepository;
+    }
+
+    /**
      * @param GitCommand $gitCommand
      * @return string
      */

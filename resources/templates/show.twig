@@ -15,6 +15,7 @@
                     <a href="/" class="btn pull-left"><span aria-hidden="true" class="glyphicon glyphicon-home"></span></a>
                     <a href="{{ path_for('fetch', { 'virtualHost': trimmedVirtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
                     <a href="{{ path_for('pull', { 'virtualHost': trimmedVirtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
+                    <a href="{{ path_for('add', { 'virtualHost': trimmedVirtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></a>
                 </div>
                 {% if repositories|length > 0 %}
                     <ul class="list-group">

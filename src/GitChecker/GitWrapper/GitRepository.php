@@ -29,6 +29,33 @@ class GitRepository
     }
 
     /**
+     * @param string $cloneUrl
+     * @param array $options
+     * @param array $arguments
+     * @return string
+     */
+    public function create($cloneUrl, array $options = [], array $arguments = [])
+    {
+        $arguments[] = $cloneUrl;
+        $arguments[] = $this->directoy;
+        $this->__lastResult = $this->wrapper->execute('clone', $options, $arguments, dirname($this->directoy), null);
+
+        return trim($this->__lastResult);
+    }
+
+    /**
+     * @param array $options
+     * @param array $arguments
+     * @return string
+     */
+    public function checkout(array $options = [], array $arguments = [])
+    {
+        $this->__lastResult = $this->wrapper->execute('checkout', $options, $arguments, $this->directoy, null);
+
+        return trim($this->__lastResult);
+    }
+
+    /**
      * @param array $options
      * @param array $arguments
      * @return string
