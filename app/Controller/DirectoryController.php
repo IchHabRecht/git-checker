@@ -154,7 +154,10 @@ class DirectoryController
         /** @var SplFileInfo $directory */
         foreach ($finder as $directory) {
             $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
-            $gitRepository->pull(['ff-only']);
+            $trackingInformation = $gitRepository->getTrackingInformation();
+            if (!empty($trackingInformation['behind']) && !$gitRepository->hasChanges()) {
+                $gitRepository->pull(['ff-only']);
+            }
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
