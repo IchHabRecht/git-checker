@@ -183,7 +183,14 @@ class DirectoryController
         foreach ($finder as $directory) {
             $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
             $trackingInformation = $gitRepository->getTrackingInformation();
-            $gitRepository->reset(['hard'], ['origin/' . $trackingInformation['branch']]);
+            $branch = !empty($trackingInformation['remoteBranch'])
+                ? $trackingInformation['remoteBranch']
+                : empty($trackingInformation['branch'])
+                    ? $trackingInformation['branch']
+                    : '';
+            if (!empty($branch)) {
+                $gitRepository->reset(['hard'], ['origin/' . $branch]);
+            }
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
