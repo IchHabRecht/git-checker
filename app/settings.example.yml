@@ -11,3 +11,6 @@ virtual-hosts:
     show:
       depth: "< 4"
       exclude:
+    umask:
+      file:
+      folder:

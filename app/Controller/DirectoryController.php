@@ -157,6 +157,7 @@ class DirectoryController
             $trackingInformation = $gitRepository->getTrackingInformation();
             if (!empty($trackingInformation['behind']) && !$gitRepository->hasChanges()) {
                 $gitRepository->pull(['ff-only']);
+                $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
             }
         }
 
@@ -190,6 +191,7 @@ class DirectoryController
                     : '';
             if (!empty($branch)) {
                 $gitRepository->reset(['hard'], ['origin/' . $branch]);
+                $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
             }
         }
 
@@ -308,5 +310,46 @@ class DirectoryController
                         $arguments
                     )
             );
+    }
+
+    /**
+     * @param string $directoryPath
+     * @param array $settings
+     * @param string $virtualHost
+     */
+    protected function setUmask($directoryPath, array $settings, $virtualHost)
+    {
+        $fileUmask = !empty($settings[$virtualHost]['umask']['file'])
+            ? $settings[$virtualHost]['umask']['file']
+            : !empty($settings['default']['umask']['file'])
+                ? $settings['default']['umask']['file']
+                : 0;
+        $folderUmask = !empty($settings[$virtualHost]['umask']['folder'])
+            ? $settings[$virtualHost]['umask']['folder']
+            : (!empty($settings['default']['umask']['folder'])
+                ? $settings['default']['umask']['folder']
+                : 0);
+        if (empty($fileUmask) && empty($folderUmask)) {
+            return;
+        }
+
+        $repositoryFinder = new Finder();
+        $repositoryFinder->ignoreUnreadableDirs(true)
+            ->ignoreDotFiles(false)
+            ->ignoreVCS(false)
+            ->in($directoryPath);
+        if (empty($fileUmask)) {
+            $repositoryFinder->directories();
+        } elseif (empty($folderUmask)) {
+            $repositoryFinder->files();
+        }
+        /** @var SplFileInfo $repositoryItem */
+        foreach ($repositoryFinder as $repositoryItem) {
+            if (!empty($fileUmask) && $repositoryItem->isFile()) {
+                chmod($repositoryItem->getPathname(), octdec($fileUmask));
+            } elseif (!empty($folderUmask) && $repositoryItem->isDir()) {
+                chmod($repositoryItem->getPathname(), octdec($folderUmask));
+            }
+        }
     }
 }
