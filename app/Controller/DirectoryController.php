@@ -146,7 +146,9 @@ class DirectoryController
         $settings = $request->getAttribute('settings');
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
         $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
-        $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+        $repository = isset($arguments['repository'])
+            ? trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR
+            : null;
 
         $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
 
