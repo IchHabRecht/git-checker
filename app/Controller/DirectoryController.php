@@ -129,6 +129,10 @@ class DirectoryController
         /** @var SplFileInfo $directory */
         foreach ($finder as $directory) {
             $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+            $trackingInformation = $gitRepository->getTrackingInformation();
+            if (empty($trackingInformation['remoteBranch'])) {
+                continue;
+            }
             $gitRepository->fetch(['no-tags'], ['origin']);
         }
 

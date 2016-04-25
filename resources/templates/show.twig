@@ -49,7 +49,11 @@
                                             {% elseif repository.status %}
                                                 <a href="{{ path_for('reset', { 'virtualHost': trimmedVirtualHost, 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-circle-arrow-down"></span></a>
                                             {% endif %}
-                                            <a href="{{ path_for('fetch', { 'virtualHost': trimmedVirtualHost, 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                                            {% if repository.trackingInformation.remoteBranch %}
+                                                <a href="{{ path_for('fetch', { 'virtualHost': trimmedVirtualHost, 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                                            {% else %}
+                                                <span class="btn disabled" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></span>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
