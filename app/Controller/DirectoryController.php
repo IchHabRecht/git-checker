@@ -163,7 +163,7 @@ class DirectoryController
             $trackingInformation = $gitRepository->getTrackingInformation();
             if (!empty($trackingInformation['behind']) && !$gitRepository->hasChanges()) {
                 $gitRepository->pull(['ff-only']);
-                $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
+                $this->setUmask(dirname($directory->getPathname()), $settings['virtual-hosts'], $virtualHost);
             }
         }
 
@@ -194,7 +194,7 @@ class DirectoryController
                 ? $trackingInformation['remoteBranch']
                 : 'HEAD';
             $gitRepository->reset(['hard'], [$branch]);
-            $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
+            $this->setUmask(dirname($directory->getPathname()), $settings['virtual-hosts'], $virtualHost);
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
