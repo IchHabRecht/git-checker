@@ -191,7 +191,7 @@ class DirectoryController
             $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
             $trackingInformation = $gitRepository->getTrackingInformation();
             $branch = !empty($trackingInformation['remoteBranch'])
-                ? 'origin/' . $trackingInformation['remoteBranch']
+                ? $trackingInformation['remoteBranch']
                 : 'HEAD';
             $gitRepository->reset(['hard'], [$branch]);
             $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
