@@ -458,7 +458,7 @@ class DirectoryController
         $repositoryFinder = new Finder();
         $repositoryFinder->ignoreUnreadableDirs(true)
             ->ignoreDotFiles(false)
-            ->ignoreVCS(false)
+            ->ignoreVCS(true)
             ->in($directoryPath);
         if (empty($fileUmask)) {
             $repositoryFinder->directories();
