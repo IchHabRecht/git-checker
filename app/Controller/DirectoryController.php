@@ -310,12 +310,12 @@ class DirectoryController
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         $gitRepository = $gitWrapper->cloneRepository($cloneUrl, $targetDirectory . $cloneDirectory);
-        $this->setUmask($targetDirectory . $cloneDirectory, $settings['virtual-hosts'], $virtualHost);
 
         if (!empty($requestArguments['branch-name'])) {
             $branchName = $requestArguments['branch-name'];
             $gitRepository->checkout(['track', 'b'], [$branchName, 'origin/' . $branchName]);
         }
+        $this->setUmask($targetDirectory . $cloneDirectory, $settings['virtual-hosts'], $virtualHost);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
