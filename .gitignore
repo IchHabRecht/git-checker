@@ -3,6 +3,6 @@ app/settings.yml
 public/css/
 public/fonts/
 var/cache/twig/*
-^var/cache/twig/.gitkeep
+!var/cache/twig/.gitkeep
 vendor/
 composer.lock
