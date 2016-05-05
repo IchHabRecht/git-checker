@@ -1,7 +1,7 @@
 <?php
 namespace App\Controller;
 
-use GitChecker\GitWrapper\GitWrapper;
+use IchHabRecht\GitWrapper\GitWrapper;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\App;
