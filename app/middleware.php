@@ -1,4 +1,4 @@
 <?php
 
-$app->add(new \GitChecker\Middleware\YamlParser(__DIR__ . '/settings.yml', 'settings'));
+$app->add(new IchHabRecht\Psr7MiddlewareYamlParser\YamlParser(__DIR__ . '/settings.yml', 'settings'));
 

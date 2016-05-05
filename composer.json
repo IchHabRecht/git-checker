@@ -26,9 +26,9 @@
   "require": {
     "slim/slim": "^3.1",
     "slim/twig-view": "^2.0",
+    "ichhabrecht/psr7-middleware-yaml-parser": "^1.0",
     "symfony/finder": "^3.0",
     "symfony/process": "^3.0",
-    "symfony/yaml": "^3.0",
     "twbs/bootstrap": "^3.3"
   },
   "require-dev": {
