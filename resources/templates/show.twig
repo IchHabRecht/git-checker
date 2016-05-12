@@ -20,6 +20,7 @@
                 {% if repositories|length > 0 %}
                     <ul class="list-group">
                         {% for repository in repositories %}
+                            {% set forwardSlashedRelativePath = repository.relativePath|replace({'\\': '/'}) %}
                             <li class="list-group-item clearfix">
                                 <div class="row">
                                     <div class="col-sm-10">
@@ -45,12 +46,12 @@
                                     <div class="col-sm-2">
                                         <div class="btn-group pull-right" role="group">
                                             {% if repository.trackingInformation.behind and not repository.status %}
-                                                <a href="{{ path_for('pull', { 'virtualHost': trimmedVirtualHost, 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
+                                                <a href="{{ path_for('pull', { 'virtualHost': trimmedVirtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
                                             {% elseif repository.status %}
-                                                <a href="{{ path_for('reset', { 'virtualHost': trimmedVirtualHost, 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-circle-arrow-down"></span></a>
+                                                <a href="{{ path_for('reset', { 'virtualHost': trimmedVirtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-circle-arrow-down"></span></a>
                                             {% endif %}
                                             {% if repository.trackingInformation.remoteBranch %}
-                                                <a href="{{ path_for('fetch', { 'virtualHost': trimmedVirtualHost, 'repository': repository.relativePath|replace({'\\': '/'}) }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                                                <a href="{{ path_for('fetch', { 'virtualHost': trimmedVirtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
                                             {% else %}
                                                 <span class="btn disabled" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></span>
                                             {% endif %}
