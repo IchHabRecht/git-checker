@@ -310,7 +310,7 @@ class DirectoryController
 
         if (!empty($requestArguments['branch-name'])) {
             $branchName = $requestArguments['branch-name'];
-            $gitRepository->checkout(['track', 'b'], [$branchName, 'origin/' . $branchName]);
+            $gitRepository->checkout(['track', ['b' => $branchName]], ['origin/' . $branchName]);
         }
         $this->setUmask($targetDirectory . $cloneDirectory, $settings['virtual-hosts'], $virtualHost);
 
