@@ -183,19 +183,16 @@ class DirectoryController
         $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
         $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
-
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        /** @var SplFileInfo $directory */
-        foreach ($finder as $directory) {
-            $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
-            $trackingInformation = $gitRepository->getTrackingInformation();
-            $branch = !empty($trackingInformation['remoteBranch'])
-                ? $trackingInformation['remoteBranch']
-                : 'HEAD';
-            $gitRepository->reset(['hard'], [$branch]);
-            $this->setUmask(dirname($directory->getPathname()), $settings['virtual-hosts'], $virtualHost);
-        }
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+        $directory = $finder->getIterator()->current();
+        $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        $trackingInformation = $gitRepository->getTrackingInformation();
+        $branch = !empty($trackingInformation['remoteBranch'])
+            ? $trackingInformation['remoteBranch']
+            : 'HEAD';
+        $gitRepository->reset(['hard'], [$branch]);
+        $this->setUmask(dirname($directory->getPathname()), $settings['virtual-hosts'], $virtualHost);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
