@@ -112,6 +112,78 @@ class DirectoryController
      * @param array $arguments
      * @return Response
      */
+    public function branch(Request $request, Response $response, array $arguments)
+    {
+        $settings = $request->getAttribute('settings');
+        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
+        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
+        $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+
+        $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+        $directory = $finder->getIterator()->current();
+        $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        $branches = $gitRepository->branch(['r']);
+
+        // Remove all HEAD pointers
+        $branches = array_filter($branches, function ($value) {
+            return strpos($value, '/HEAD ') === false;
+        });
+
+        $this->view->render(
+            $response,
+            'branch.twig',
+            [
+                'settings' => $settings,
+                'root' => $root,
+                'virtualHost' => $virtualHost,
+                'repository' => $repository,
+                'branches' => $branches,
+            ]
+        );
+
+        return $response;
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $arguments
+     * @return Response
+     */
+    public function checkout(Request $request, Response $response, array $arguments)
+    {
+        $requestArguments = $request->getParsedBody();
+        if (!isset($requestArguments['branch-name'])) {
+            throw new \InvalidArgumentException('branch name is missing', 1463217674);
+        }
+
+        $settings = $request->getAttribute('settings');
+        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
+        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
+        $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+
+        $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+        $directory = $finder->getIterator()->current();
+        $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        $remoteBranchName = $requestArguments['branch-name'];
+        $localBranchName = substr($remoteBranchName, strpos($remoteBranchName, '/') + 1);
+        $currentBranch = $gitRepository->getCurrentBranch();
+        if ($currentBranch !== $localBranchName) {
+            $gitRepository->checkout(['track', ['B' => $localBranchName]], [$remoteBranchName]);
+            $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
+        }
+
+        return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $arguments
+     * @return Response
+     */
     public function fetch(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');

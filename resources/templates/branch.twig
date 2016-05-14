@@ -1,0 +1,37 @@
+{% extends 'base.twig' %}
+
+{% block title %}Git Checker - {{ root }}{{ virtualHost }}{% endblock %}
+
+{% block content %}
+    {% set trimmedVirtualHost = virtualHost|trim('/\\') %}
+    {% set trimmedRepository = repository|trim('/\\')|replace({'\\': '/'}) %}
+
+    <div class="page-header">
+        <h1>{{ root }}{{ virtualHost }}</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading clearfix">
+                    <a href="{{ path_for('show', { 'virtualHost': trimmedVirtualHost }) }}" class="btn pull-left"><span aria-hidden="true" class="glyphicon glyphicon-arrow-left"></span></a>
+                </div>
+                <div class="panel-body">
+                    <h2 style="margin-top: 0">{{ trimmedRepository }}</h2>
+                    <form action="{{ path_for('checkout', { 'virtualHost': trimmedVirtualHost, 'repository': trimmedRepository }) }}" method="post">
+                        <div class="form-group">
+                            <label for="branch-name">Branch</label>
+                            <select id="branch" name="branch-name" class="form-control">
+                                {% for branch in branches %}
+                                    <option value="{{ branch }}">{{ branch }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

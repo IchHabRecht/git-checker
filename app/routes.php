@@ -8,6 +8,10 @@ $app->group('/show/{virtualHost}', function () {
         ->setName('add');
     $this->post('/create', \App\Controller\DirectoryController::class . ':create')
         ->setName('create');
+    $this->get('/branch/{repository:.+}', \App\Controller\DirectoryController::class . ':branch')
+        ->setName('branch');
+    $this->post('/checkout/{repository:.+}', \App\Controller\DirectoryController::class . ':checkout')
+        ->setName('checkout');
     $this->get('/fetch/[{repository:.+}]', \App\Controller\DirectoryController::class . ':fetch')
         ->setName('fetch');
     $this->get('/pull/[{repository:.+}]', \App\Controller\DirectoryController::class . ':pull')
