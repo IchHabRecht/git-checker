@@ -16,4 +16,10 @@ virtual-hosts:
       exclude:
     umask:
       file:
+        user:
+        group:
+        others:
       folder:
+        user:
+        group:
+        others:

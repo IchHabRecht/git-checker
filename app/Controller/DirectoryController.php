@@ -515,11 +515,14 @@ class DirectoryController
             : !empty($settings['default']['umask']['file'])
                 ? $settings['default']['umask']['file']
                 : 0;
+        $fileUmask = is_array($fileUmask) ? array_filter($fileUmask) : $fileUmask;
         $folderUmask = !empty($settings[$virtualHost]['umask']['folder'])
             ? $settings[$virtualHost]['umask']['folder']
             : (!empty($settings['default']['umask']['folder'])
                 ? $settings['default']['umask']['folder']
                 : 0);
+        $folderUmask = is_array($folderUmask) ? array_filter($folderUmask) : $folderUmask;
+
         if (empty($fileUmask) && empty($folderUmask)) {
             return;
         }
@@ -537,9 +540,35 @@ class DirectoryController
         /** @var SplFileInfo $repositoryItem */
         foreach ($repositoryFinder as $repositoryItem) {
             if (!empty($fileUmask) && $repositoryItem->isFile()) {
-                chmod($repositoryItem->getPathname(), octdec($fileUmask));
+                $this->ensureFileOrFolderPermissions($repositoryItem->getPathname(), $fileUmask);
             } elseif (!empty($folderUmask) && $repositoryItem->isDir()) {
-                chmod($repositoryItem->getPathname(), octdec($folderUmask));
+                $this->ensureFileOrFolderPermissions($repositoryItem->getPathname(), $folderUmask);
+            }
+        }
+    }
+
+    /**
+     * @param string $fileOrFolderPath
+     * @param string|array $permissions
+     */
+    protected function ensureFileOrFolderPermissions($fileOrFolderPath, $permissions)
+    {
+        if (!is_array($permissions)) {
+            chmod($fileOrFolderPath, octdec($permissions));
+        } else {
+            $fileOrFolderPermissions = fileperms($fileOrFolderPath);
+            $fileOrFolderPermissionArray = array_combine(
+                ['user', 'group', 'others'],
+                array_pad(str_split(decoct($fileOrFolderPermissions & 0777)), 3, 0)
+            );
+            foreach ($permissions as $key => $value) {
+                if (($fileOrFolderPermissionArray[$key] & $value) !== $value) {
+                    $fileOrFolderPermissionArray[$key] |= $value;
+                }
+            }
+            $newFileOrFolderPermissions = octdec(implode('', $fileOrFolderPermissionArray));
+            if (($fileOrFolderPermissions & $newFileOrFolderPermissions) !== $newFileOrFolderPermissions) {
+                chmod($fileOrFolderPath, $newFileOrFolderPermissions);
             }
         }
     }
