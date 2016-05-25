@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller;
+namespace IchHabRecht\GitCheckerApp\Controller;
 
 use IchHabRecht\GitWrapper\GitWrapper;
 use Psr\Http\Message\ServerRequestInterface as Request;

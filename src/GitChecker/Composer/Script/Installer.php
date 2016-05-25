@@ -1,5 +1,5 @@
 <?php
-namespace GitChecker\Composer\Script;
+namespace IchHabRecht\GitChecker\Composer\Script;
 
 use Composer\Installer\InstallationManager;
 use Composer\Repository\InstalledRepositoryInterface;
