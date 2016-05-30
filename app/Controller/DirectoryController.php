@@ -43,10 +43,10 @@ class DirectoryController
             ->sortByName()
             ->in($root);
 
-        if (!empty($settings['virtual-hosts']['default']['index']['exclude'])
-            && is_array($settings['virtual-hosts']['default']['index']['exclude'])
+        if (!empty($settings['virtual-host']['index']['exclude'])
+            && is_array($settings['virtual-host']['index']['exclude'])
         ) {
-            foreach ($settings['virtual-hosts']['default']['index']['exclude'] as $dir) {
+            foreach ($settings['virtual-host']['index']['exclude'] as $dir) {
                 $finder->notPath(strtr($dir, '\\', '/'));
             }
         }
@@ -76,7 +76,7 @@ class DirectoryController
         $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
         $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts']);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host']);
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         $repositories = [];
@@ -120,7 +120,7 @@ class DirectoryController
         $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
         $directory = $finder->getIterator()->current();
         $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
         $branches = $gitRepository->branch(['r']);
@@ -164,7 +164,7 @@ class DirectoryController
         $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
         $directory = $finder->getIterator()->current();
         $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
         $remoteBranchName = $requestArguments['branch-name'];
@@ -172,7 +172,7 @@ class DirectoryController
         $currentBranch = $gitRepository->getCurrentBranch();
         if ($currentBranch !== $localBranchName) {
             $gitRepository->checkout(['track', ['B' => $localBranchName]], [$remoteBranchName]);
-            $this->setUmask($directory->getPathname(), $settings['virtual-hosts'], $virtualHost);
+            $this->setUmask($directory->getPathname(), $settings['virtual-host']);
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
@@ -195,7 +195,7 @@ class DirectoryController
             $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
         }
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         /** @var SplFileInfo $directory */
@@ -226,7 +226,7 @@ class DirectoryController
             ? trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR
             : null;
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         /** @var SplFileInfo $directory */
@@ -235,7 +235,7 @@ class DirectoryController
             $trackingInformation = $gitRepository->getTrackingInformation();
             if (!empty($trackingInformation['behind']) && !$gitRepository->hasChanges()) {
                 $gitRepository->pull(['ff-only']);
-                $this->setUmask(dirname($directory->getPathname()), $settings['virtual-hosts'], $virtualHost);
+                $this->setUmask(dirname($directory->getPathname()), $settings['virtual-host']);
             }
         }
 
@@ -256,7 +256,7 @@ class DirectoryController
         $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-hosts'], $repository);
+        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
         $directory = $finder->getIterator()->current();
         $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
         $trackingInformation = $gitRepository->getTrackingInformation();
@@ -264,7 +264,7 @@ class DirectoryController
             ? $trackingInformation['remoteBranch']
             : 'HEAD';
         $gitRepository->reset(['hard'], [$branch]);
-        $this->setUmask(dirname($directory->getPathname()), $settings['virtual-hosts'], $virtualHost);
+        $this->setUmask(dirname($directory->getPathname()), $settings['virtual-host']);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
@@ -286,11 +286,9 @@ class DirectoryController
             throw new \InvalidArgumentException('Wrong path provided', 1461609455);
         }
 
-        $folders = isset($settings['virtual-hosts'][$virtualHost]['add']['allow'])
-            ? $settings['virtual-hosts'][$virtualHost]['add']['allow']
-            : isset($settings['virtual-hosts']['default']['add']['allow'])
-                ? $settings['virtual-hosts']['default']['add']['allow']
-                : [];
+        $folders = isset($settings['virtual-host']['add']['allow'])
+            ? $settings['virtual-host']['add']['allow']
+            : [];
         if (!empty($folders)) {
             array_walk($folders, function (&$value) {
                 $value = [
@@ -298,32 +296,24 @@ class DirectoryController
                 ];
             });
         } else {
-            $depth = isset($settings['virtual-hosts'][$virtualHost]['show']['depth'])
-                ? $settings['virtual-hosts'][$virtualHost]['show']['depth']
-                : $settings['virtual-hosts']['default']['show']['depth'];
-
             $folders = new Finder();
             $folders->directories()
                 ->ignoreUnreadableDirs(true)
                 ->ignoreDotFiles(true)
                 ->ignoreVCS(true)
                 ->followLinks()
-                ->depth($depth)
+                ->depth($settings['virtual-host']['show']['depth'])
                 ->sort(function (SplFileInfo $a, SplFileInfo $b) {
                     return strcmp($a->getRelativePathname(), $b->getRelativePathname());
                 })
                 ->in($absolutePath);
 
-            $excludeShowDirs = isset($settings['virtual-hosts'][$virtualHost]['show']['exclude'])
-                ? $settings['virtual-hosts'][$virtualHost]['show']['exclude']
-                : isset($settings['virtual-hosts']['default']['show']['exclude'])
-                    ? $settings['virtual-hosts']['default']['show']['exclude']
-                    : [];
-            $excludeAddDirs = isset($settings['virtual-hosts'][$virtualHost]['add']['exclude'])
-                ? $settings['virtual-hosts'][$virtualHost]['add']['exclude']
-                : isset($settings['virtual-hosts']['default']['add']['exclude'])
-                    ? $settings['virtual-hosts']['default']['add']['exclude']
-                    : [];
+            $excludeShowDirs = isset($settings['virtual-host']['show']['exclude'])
+                ? $settings['virtual-host']['show']['exclude']
+                : [];
+            $excludeAddDirs = isset($settings['virtual-host']['add']['exclude'])
+                ? $settings['virtual-host']['add']['exclude']
+                : [];
             foreach (array_merge($excludeShowDirs, $excludeAddDirs) as $dir) {
                 $folders->notPath(strtr($dir, '\\', '/'));
             }
@@ -384,7 +374,7 @@ class DirectoryController
             $branchName = $requestArguments['branch-name'];
             $gitRepository->checkout(['track', ['b' => $branchName]], ['origin/' . $branchName]);
         }
-        $this->setUmask($targetDirectory . $cloneDirectory, $settings['virtual-hosts'], $virtualHost);
+        $this->setUmask($targetDirectory . $cloneDirectory, $settings['virtual-host']);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
@@ -430,12 +420,8 @@ class DirectoryController
             throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
         }
 
-        if (!isset($settings['default']['show']['depth'])) {
+        if (!isset($settings['show']['depth'])) {
             throw new \InvalidArgumentException('Missing default repository configuration', 1456425560002);
-        }
-        $depth = $settings['default']['show']['depth'];
-        if (isset($settings[$virtualHost]['show']['depth'])) {
-            $depth = $settings[$virtualHost]['show']['depth'];
         }
 
         $finder = new Finder();
@@ -445,19 +431,15 @@ class DirectoryController
             ->ignoreVCS(false)
             ->followLinks()
             ->name('.git')
-            ->depth($depth)
+            ->depth($settings['show']['depth'])
             ->sort(function (SplFileInfo $a, SplFileInfo $b) {
                 return strcmp($a->getRelativePathname(), $b->getRelativePathname());
             })
             ->in($absolutePath);
 
-        $excludeDirs = null;
-        if (isset($settings['default']['show']['exclude'])) {
-            $excludeDirs = $settings['default']['show']['exclude'];
-        }
-        if (isset($settings[$virtualHost]['show']['exclude'])) {
-            $excludeDirs = $settings[$virtualHost]['show']['exclude'];
-        }
+        $excludeDirs = (isset($settings['show']['exclude']))
+            ? $settings['show']['exclude']
+            : [];
         if (!empty($excludeDirs) && is_array($excludeDirs)) {
             foreach ($excludeDirs as $dir) {
                 $finder->notPath(strtr($dir, '\\', '/'));
@@ -506,21 +488,16 @@ class DirectoryController
     /**
      * @param string $directoryPath
      * @param array $settings
-     * @param string $virtualHost
      */
-    protected function setUmask($directoryPath, array $settings, $virtualHost)
+    protected function setUmask($directoryPath, array $settings)
     {
-        $fileUmask = !empty($settings[$virtualHost]['umask']['file'])
-            ? $settings[$virtualHost]['umask']['file']
-            : !empty($settings['default']['umask']['file'])
-                ? $settings['default']['umask']['file']
-                : 0;
+        $fileUmask = !empty($settings['umask']['file'])
+            ? $settings['umask']['file']
+            : 0;
         $fileUmask = is_array($fileUmask) ? array_filter($fileUmask) : $fileUmask;
-        $folderUmask = !empty($settings[$virtualHost]['umask']['folder'])
-            ? $settings[$virtualHost]['umask']['folder']
-            : (!empty($settings['default']['umask']['folder'])
-                ? $settings['default']['umask']['folder']
-                : 0);
+        $folderUmask = !empty($settings['umask']['folder'])
+            ? $settings['umask']['folder']
+            : 0;
         $folderUmask = is_array($folderUmask) ? array_filter($folderUmask) : $folderUmask;
 
         if (empty($fileUmask) && empty($folderUmask)) {
