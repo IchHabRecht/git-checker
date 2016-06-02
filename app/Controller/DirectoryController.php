@@ -55,7 +55,6 @@ class DirectoryController
             $response,
             'index.twig',
             [
-                'settings' => $settings,
                 'root' => $root,
                 'directories' => $finder,
             ]
@@ -96,7 +95,6 @@ class DirectoryController
             $response,
             'show.twig',
             [
-                'settings' => $settings,
                 'virtualHost' => $virtualHost,
                 'absoluteVirtualHostPath' => $absoluteVirtualHostPath,
                 'repositories' => $repositories,
@@ -132,7 +130,6 @@ class DirectoryController
             $response,
             'branch.twig',
             [
-                'settings' => $settings,
                 'virtualHost' => $request->getAttribute('virtualHostPath'),
                 'absoluteVirtualHostPath' => $request->getAttribute('absoluteVirtualHostPath'),
                 'repository' => $request->getAttribute('repository'),
@@ -315,7 +312,6 @@ class DirectoryController
             $response,
             'add.twig',
             [
-                'settings' => $settings,
                 'virtualHost' => $virtualHost,
                 'absoluteVirtualHostPath' => $absoluteVirtualHostPath,
                 'folders' => $folders,
