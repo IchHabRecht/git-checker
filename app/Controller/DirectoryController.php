@@ -34,7 +34,7 @@ class DirectoryController
     public function index(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
+        $root = $request->getAttribute('absoluteRootPath');
 
         $finder = new Finder();
         $finder->directories()
@@ -73,10 +73,10 @@ class DirectoryController
     public function show(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
+        $virtualHost = $request->getAttribute('virtualHostPath');
+        $absoluteVirtualHostPath = $request->getAttribute('absoluteVirtualHostPath');
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host']);
+        $finder = $this->getRepositoryFinder($absoluteVirtualHostPath, $settings['virtual-host']);
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         $repositories = [];
@@ -97,8 +97,8 @@ class DirectoryController
             'show.twig',
             [
                 'settings' => $settings,
-                'root' => $root,
                 'virtualHost' => $virtualHost,
+                'absoluteVirtualHostPath' => $absoluteVirtualHostPath,
                 'repositories' => $repositories,
             ]
         );
@@ -115,12 +115,10 @@ class DirectoryController
     public function branch(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
-        $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+        $absolutePath = $request->getAttribute('absoluteRepositoryPath');
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
+        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
         $directory = $finder->getIterator()->current();
         $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
         $branches = $gitRepository->branch(['r']);
@@ -135,9 +133,9 @@ class DirectoryController
             'branch.twig',
             [
                 'settings' => $settings,
-                'root' => $root,
-                'virtualHost' => $virtualHost,
-                'repository' => $repository,
+                'virtualHost' => $request->getAttribute('virtualHostPath'),
+                'absoluteVirtualHostPath' => $request->getAttribute('absoluteVirtualHostPath'),
+                'repository' => $request->getAttribute('repository'),
                 'branches' => $branches,
             ]
         );
@@ -159,12 +157,10 @@ class DirectoryController
         }
 
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
-        $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+        $absolutePath = $request->getAttribute('absoluteRepositoryPath');
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
+        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
         $directory = $finder->getIterator()->current();
         $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
         $remoteBranchName = $requestArguments['branch-name'];
@@ -187,15 +183,12 @@ class DirectoryController
     public function fetch(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
 
-        $repository = null;
-        if (isset($arguments['repository'])) {
-            $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
-        }
+        $absolutePath = isset($arguments['repository'])
+            ? $request->getAttribute('absoluteRepositoryPath')
+            : $request->getAttribute('absoluteVirtualHostPath');
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
+        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         /** @var SplFileInfo $directory */
@@ -220,13 +213,12 @@ class DirectoryController
     public function pull(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
-        $repository = isset($arguments['repository'])
-            ? trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR
-            : null;
 
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
+        $absolutePath = isset($arguments['repository'])
+            ? $request->getAttribute('absoluteRepositoryPath')
+            : $request->getAttribute('absoluteVirtualHostPath');
+
+        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         /** @var SplFileInfo $directory */
@@ -251,12 +243,13 @@ class DirectoryController
     public function reset(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
-        $repository = trim($arguments['repository'], '/\\') . DIRECTORY_SEPARATOR;
+
+        $absolutePath = isset($arguments['repository'])
+            ? $request->getAttribute('absoluteRepositoryPath')
+            : $request->getAttribute('absoluteVirtualHostPath');
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($root, $virtualHost, $settings['virtual-host'], $repository);
+        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
         $directory = $finder->getIterator()->current();
         $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
         $trackingInformation = $gitRepository->getTrackingInformation();
@@ -278,11 +271,10 @@ class DirectoryController
     public function add(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
+        $virtualHost = $request->getAttribute('virtualHostPath');
+        $absoluteVirtualHostPath = $request->getAttribute('absoluteVirtualHostPath');
 
-        $absolutePath = $root . $virtualHost;
-        if (!@is_dir($absolutePath)) {
+        if (!@is_dir($absoluteVirtualHostPath)) {
             throw new \InvalidArgumentException('Wrong path provided', 1461609455);
         }
 
@@ -306,7 +298,7 @@ class DirectoryController
                 ->sort(function (SplFileInfo $a, SplFileInfo $b) {
                     return strcmp($a->getRelativePathname(), $b->getRelativePathname());
                 })
-                ->in($absolutePath);
+                ->in($absoluteVirtualHostPath);
 
             $excludeShowDirs = isset($settings['virtual-host']['show']['exclude'])
                 ? $settings['virtual-host']['show']['exclude']
@@ -324,8 +316,8 @@ class DirectoryController
             'add.twig',
             [
                 'settings' => $settings,
-                'root' => $root,
                 'virtualHost' => $virtualHost,
+                'absoluteVirtualHostPath' => $absoluteVirtualHostPath,
                 'folders' => $folders,
             ]
         );
@@ -350,11 +342,9 @@ class DirectoryController
         }
 
         $settings = $request->getAttribute('settings');
-        $root = rtrim($settings['root'], '/\\') . DIRECTORY_SEPARATOR;
-        $virtualHost = trim($arguments['virtualHost'], '/\\') . DIRECTORY_SEPARATOR;
-        $parentDirectory = trim($requestArguments['parent-directory'], '/\\') . DIRECTORY_SEPARATOR;
+        $absoluteVirtualHostPath = $request->getAttribute('absoluteVirtualHostPath');
 
-        $targetDirectory = $root . $virtualHost . $parentDirectory;
+        $targetDirectory = $absoluteVirtualHostPath . trim($requestArguments['parent-directory'], '/\\') . DIRECTORY_SEPARATOR;
         if (!is_dir($targetDirectory)) {
             throw new \InvalidArgumentException('Parent directory "' . $targetDirectory . '" does net exist', 1461615365);
         }
@@ -405,17 +395,12 @@ class DirectoryController
     }
 
     /**
-     * @param string $root
-     * @param string $virtualHost
+     * @param string $absolutePath
      * @param array $settings
-     * @param string|null $repository
      * @return Finder
      */
-    protected function getRepositoryFinder($root, $virtualHost, array $settings, $repository = null)
+    protected function getRepositoryFinder($absolutePath, array $settings)
     {
-        $root = rtrim($root, '/\\');
-        $virtualHost = trim($virtualHost, '/\\');
-        $absolutePath = $root . DIRECTORY_SEPARATOR . $virtualHost;
         if (!@is_dir($absolutePath)) {
             throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
         }
@@ -443,21 +428,6 @@ class DirectoryController
         if (!empty($excludeDirs) && is_array($excludeDirs)) {
             foreach ($excludeDirs as $dir) {
                 $finder->notPath(strtr($dir, '\\', '/'));
-            }
-        }
-
-        if ($repository) {
-            $repository = trim($repository, '/\\');
-            $absolutePath .= DIRECTORY_SEPARATOR . $repository;
-            if (!@is_dir($absolutePath)) {
-                throw  new \InvalidArgumentException('Wrong repository path provided', 1456433944431);
-            }
-
-            $finder->depth(0)
-                ->in($absolutePath);
-
-            if (count($finder) !== 1) {
-                throw new \RuntimeException('Unexpected repository count found', 1456433999553);
             }
         }
 

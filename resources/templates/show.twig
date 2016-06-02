@@ -1,11 +1,10 @@
 {% extends 'base.twig' %}
 
-{% block title %}Git Checker - {{ root }}{{ virtualHost }}{% endblock %}
+{% block title %}Git Checker - {{ absoluteVirtualHostPath }}{% endblock %}
 
 {% block content %}
-    {% set trimmedVirtualHost = virtualHost|trim('/\\') %}
     <div class="page-header">
-        <h1>{{ root }}{{ virtualHost }}</h1>
+        <h1>{{ absoluteVirtualHostPath }}</h1>
     </div>
 
     <div class="row">
@@ -13,9 +12,9 @@
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
                     <a href="/" class="btn pull-left"><span aria-hidden="true" class="glyphicon glyphicon-home"></span></a>
-                    <a href="{{ path_for('fetch', { 'virtualHost': trimmedVirtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
-                    <a href="{{ path_for('pull', { 'virtualHost': trimmedVirtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
-                    <a href="{{ path_for('add', { 'virtualHost': trimmedVirtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></a>
+                    <a href="{{ path_for('fetch', { 'virtualHost': virtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                    <a href="{{ path_for('pull', { 'virtualHost': virtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
+                    <a href="{{ path_for('add', { 'virtualHost': virtualHost }) }}" class="btn pull-right"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></a>
                 </div>
                 {% if repositories|length > 0 %}
                     <ul class="list-group">
@@ -29,7 +28,7 @@
                                             <span class="label label-default">
                                                 {{ repository.trackingInformation.branch }}
                                                 {% if not repository.status %}
-                                                    <a href="{{ path_for('branch', { 'virtualHost': trimmedVirtualHost, 'repository': forwardSlashedRelativePath }) }}" style="color: #fff"><span aria-hidden="true" class="glyphicon glyphicon-random" style="top: 2px"></span></a>
+                                                    <a href="{{ path_for('branch', { 'virtualHost': virtualHost, 'repository': forwardSlashedRelativePath }) }}" style="color: #fff"><span aria-hidden="true" class="glyphicon glyphicon-random" style="top: 2px"></span></a>
                                                 {% endif %}
                                             </span>
                                             <span><span class="badge">{{ repository.trackingInformation.behind }}</span></span>
@@ -51,12 +50,12 @@
                                     <div class="col-sm-2">
                                         <div class="btn-group pull-right" role="group">
                                             {% if repository.trackingInformation.behind and not repository.status %}
-                                                <a href="{{ path_for('pull', { 'virtualHost': trimmedVirtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
+                                                <a href="{{ path_for('pull', { 'virtualHost': virtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-download"></span></a>
                                             {% elseif repository.status %}
-                                                <a href="{{ path_for('reset', { 'virtualHost': trimmedVirtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-circle-arrow-down"></span></a>
+                                                <a href="{{ path_for('reset', { 'virtualHost': virtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-circle-arrow-down"></span></a>
                                             {% endif %}
                                             {% if repository.trackingInformation.remoteBranch %}
-                                                <a href="{{ path_for('fetch', { 'virtualHost': trimmedVirtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
+                                                <a href="{{ path_for('fetch', { 'virtualHost': virtualHost, 'repository': forwardSlashedRelativePath }) }}" class="btn" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
                                             {% else %}
                                                 <span class="btn disabled" style="border-color: #ccc"><span aria-hidden="true" class="glyphicon glyphicon-remove-sign"></span></span>
                                             {% endif %}
