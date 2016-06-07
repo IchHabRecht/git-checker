@@ -1,6 +1,8 @@
 <?php
 namespace IchHabRecht\GitCheckerApp\Controller;
 
+use IchHabRecht\GitChecker\Finder\RepositoryFinder;
+use IchHabRecht\GitWrapper\GitRepository;
 use IchHabRecht\GitWrapper\GitWrapper;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -75,16 +77,14 @@ class DirectoryController
         $virtualHost = $request->getAttribute('virtualHostPath');
         $absoluteVirtualHostPath = $request->getAttribute('absoluteVirtualHostPath');
 
-        $finder = $this->getRepositoryFinder($absoluteVirtualHostPath, $settings['virtual-host']);
-
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
+        $repositoryFinder = new RepositoryFinder($gitWrapper);
+
         $repositories = [];
-        /** @var SplFileInfo $directory */
-        foreach ($finder as $directory) {
-            $relativePath = trim($directory->getRelativePath(), '/\\');
-            $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        /** @var GitRepository $gitRepository */
+        foreach ($repositoryFinder->getGitRepositories($absoluteVirtualHostPath, $settings['virtual-host']) as $gitRepository) {
             $repositories[] = [
-                'relativePath' => $relativePath,
+                'relativePath' => str_replace($absoluteVirtualHostPath, '', $gitRepository->getDirectory()),
                 'commit' => $gitRepository->log(['1', 'oneline']),
                 'status' => $gitRepository->getStatus(),
                 'trackingInformation' => $gitRepository->getTrackingInformation(),
@@ -116,9 +116,8 @@ class DirectoryController
         $absolutePath = $request->getAttribute('absoluteRepositoryPath');
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
-        $directory = $finder->getIterator()->current();
-        $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        $repositoryFinder = new RepositoryFinder($gitWrapper);
+        $gitRepository = $repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host'])->getIterator()->current();
         $branches = $gitRepository->branch(['r']);
 
         // Remove all HEAD pointers
@@ -157,15 +156,14 @@ class DirectoryController
         $absolutePath = $request->getAttribute('absoluteRepositoryPath');
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
-        $directory = $finder->getIterator()->current();
-        $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        $repositoryFinder = new RepositoryFinder($gitWrapper);
+        $gitRepository = $repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host'])->getIterator()->current();
         $remoteBranchName = $requestArguments['branch-name'];
         $localBranchName = substr($remoteBranchName, strpos($remoteBranchName, '/') + 1);
         $currentBranch = $gitRepository->getCurrentBranch();
         if ($currentBranch !== $localBranchName) {
             $gitRepository->checkout(['track', ['B' => $localBranchName]], [$remoteBranchName]);
-            $this->setUmask($directory->getPathname(), $settings['virtual-host']);
+            $this->setUmask($gitRepository->getDirectory(), $settings['virtual-host']);
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
@@ -185,12 +183,11 @@ class DirectoryController
             ? $request->getAttribute('absoluteRepositoryPath')
             : $request->getAttribute('absoluteVirtualHostPath');
 
-        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
-
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        /** @var SplFileInfo $directory */
-        foreach ($finder as $directory) {
-            $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        $repositoryFinder = new RepositoryFinder($gitWrapper);
+
+        /** @var GitRepository $gitRepository */
+        foreach ($repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host']) as $gitRepository) {
             $trackingInformation = $gitRepository->getTrackingInformation();
             if (empty($trackingInformation['remoteBranch'])) {
                 continue;
@@ -215,16 +212,15 @@ class DirectoryController
             ? $request->getAttribute('absoluteRepositoryPath')
             : $request->getAttribute('absoluteVirtualHostPath');
 
-        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
-
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        /** @var SplFileInfo $directory */
-        foreach ($finder as $directory) {
-            $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        $repositoryFinder = new RepositoryFinder($gitWrapper);
+
+        /** @var GitRepository $gitRepository */
+        foreach ($repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host']) as $gitRepository) {
             $trackingInformation = $gitRepository->getTrackingInformation();
             if (!empty($trackingInformation['behind']) && !$gitRepository->hasChanges()) {
                 $gitRepository->pull(['ff-only']);
-                $this->setUmask(dirname($directory->getPathname()), $settings['virtual-host']);
+                $this->setUmask($gitRepository->getDirectory(), $settings['virtual-host']);
             }
         }
 
@@ -246,15 +242,14 @@ class DirectoryController
             : $request->getAttribute('absoluteVirtualHostPath');
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $finder = $this->getRepositoryFinder($absolutePath, $settings['virtual-host']);
-        $directory = $finder->getIterator()->current();
-        $gitRepository = $gitWrapper->getRepository(dirname($directory->getPathname()));
+        $repositoryFinder = new RepositoryFinder($gitWrapper);
+        $gitRepository = $repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host'])->getIterator()->current();
         $trackingInformation = $gitRepository->getTrackingInformation();
         $branch = !empty($trackingInformation['remoteBranch'])
             ? $trackingInformation['remoteBranch']
             : 'HEAD';
         $gitRepository->reset(['hard'], [$branch]);
-        $this->setUmask(dirname($directory->getPathname()), $settings['virtual-host']);
+        $this->setUmask($gitRepository->getDirectory(), $settings['virtual-host']);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
@@ -388,46 +383,6 @@ class DirectoryController
         }
 
         return $gitWrapper;
-    }
-
-    /**
-     * @param string $absolutePath
-     * @param array $settings
-     * @return Finder
-     */
-    protected function getRepositoryFinder($absolutePath, array $settings)
-    {
-        if (!@is_dir($absolutePath)) {
-            throw new \InvalidArgumentException('Wrong path provided', 1456264866695);
-        }
-
-        if (!isset($settings['show']['depth'])) {
-            throw new \InvalidArgumentException('Missing default repository configuration', 1456425560002);
-        }
-
-        $finder = new Finder();
-        $finder->directories()
-            ->ignoreUnreadableDirs(true)
-            ->ignoreDotFiles(false)
-            ->ignoreVCS(false)
-            ->followLinks()
-            ->name('.git')
-            ->depth($settings['show']['depth'])
-            ->sort(function (SplFileInfo $a, SplFileInfo $b) {
-                return strcmp($a->getRelativePathname(), $b->getRelativePathname());
-            })
-            ->in($absolutePath);
-
-        $excludeDirs = (isset($settings['show']['exclude']))
-            ? $settings['show']['exclude']
-            : [];
-        if (!empty($excludeDirs) && is_array($excludeDirs)) {
-            foreach ($excludeDirs as $dir) {
-                $finder->notPath(strtr($dir, '\\', '/'));
-            }
-        }
-
-        return $finder;
     }
 
     /**
