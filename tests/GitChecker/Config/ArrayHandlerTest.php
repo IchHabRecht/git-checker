@@ -1,5 +1,5 @@
 <?php
-namespace IchHabRecht\GitChecker\Tests\GitChecker\Config;
+namespace IchHabRecht\GitChecker\Tests\Config;
 
 use IchHabRecht\GitChecker\Config\ArrayHandler;
 

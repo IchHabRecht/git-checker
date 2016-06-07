@@ -1,5 +1,5 @@
 <?php
-namespace IchHabRecht\GitChecker\Tests\GitChecker\Finder;
+namespace IchHabRecht\GitChecker\Tests\Finder;
 
 use IchHabRecht\GitChecker\Finder\RepositoryFinder;
 use IchHabRecht\GitWrapper\GitRepository;

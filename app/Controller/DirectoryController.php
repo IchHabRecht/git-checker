@@ -1,6 +1,7 @@
 <?php
 namespace IchHabRecht\GitCheckerApp\Controller;
 
+use IchHabRecht\Filesystem\Filemode;
 use IchHabRecht\GitChecker\Finder\RepositoryFinder;
 use IchHabRecht\GitWrapper\GitRepository;
 use IchHabRecht\GitWrapper\GitWrapper;
@@ -163,7 +164,8 @@ class DirectoryController
         $currentBranch = $gitRepository->getCurrentBranch();
         if ($currentBranch !== $localBranchName) {
             $gitRepository->checkout(['track', ['B' => $localBranchName]], [$remoteBranchName]);
-            $this->setUmask($gitRepository->getDirectory(), $settings['virtual-host']);
+            $filemode = new Filemode();
+            $filemode->setUmask($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
@@ -214,13 +216,14 @@ class DirectoryController
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
         $repositoryFinder = new RepositoryFinder($gitWrapper);
+        $filemode = new Filemode();
 
         /** @var GitRepository $gitRepository */
         foreach ($repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host']) as $gitRepository) {
             $trackingInformation = $gitRepository->getTrackingInformation();
             if (!empty($trackingInformation['behind']) && !$gitRepository->hasChanges()) {
                 $gitRepository->pull(['ff-only']);
-                $this->setUmask($gitRepository->getDirectory(), $settings['virtual-host']);
+                $filemode->setUmask($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
             }
         }
 
@@ -249,7 +252,9 @@ class DirectoryController
             ? $trackingInformation['remoteBranch']
             : 'HEAD';
         $gitRepository->reset(['hard'], [$branch]);
-        $this->setUmask($gitRepository->getDirectory(), $settings['virtual-host']);
+
+        $filemode = new Filemode();
+        $filemode->setUmask($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
@@ -355,7 +360,9 @@ class DirectoryController
             $branchName = $requestArguments['branch-name'];
             $gitRepository->checkout(['track', ['b' => $branchName]], ['origin/' . $branchName]);
         }
-        $this->setUmask($targetDirectory . $cloneDirectory, $settings['virtual-host']);
+
+        $filemode = new Filemode();
+        $filemode->setUmask($targetDirectory . $cloneDirectory, $settings['virtual-host']['umask']);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
@@ -404,70 +411,5 @@ class DirectoryController
                         $arguments
                     )
             );
-    }
-
-    /**
-     * @param string $directoryPath
-     * @param array $settings
-     */
-    protected function setUmask($directoryPath, array $settings)
-    {
-        $fileUmask = !empty($settings['umask']['file'])
-            ? $settings['umask']['file']
-            : 0;
-        $fileUmask = is_array($fileUmask) ? array_filter($fileUmask) : $fileUmask;
-        $folderUmask = !empty($settings['umask']['folder'])
-            ? $settings['umask']['folder']
-            : 0;
-        $folderUmask = is_array($folderUmask) ? array_filter($folderUmask) : $folderUmask;
-
-        if (empty($fileUmask) && empty($folderUmask)) {
-            return;
-        }
-
-        $repositoryFinder = new Finder();
-        $repositoryFinder->ignoreUnreadableDirs(true)
-            ->ignoreDotFiles(false)
-            ->ignoreVCS(true)
-            ->in($directoryPath);
-        if (empty($fileUmask)) {
-            $repositoryFinder->directories();
-        } elseif (empty($folderUmask)) {
-            $repositoryFinder->files();
-        }
-        /** @var SplFileInfo $repositoryItem */
-        foreach ($repositoryFinder as $repositoryItem) {
-            if (!empty($fileUmask) && $repositoryItem->isFile()) {
-                $this->ensureFileOrFolderPermissions($repositoryItem->getPathname(), $fileUmask);
-            } elseif (!empty($folderUmask) && $repositoryItem->isDir()) {
-                $this->ensureFileOrFolderPermissions($repositoryItem->getPathname(), $folderUmask);
-            }
-        }
-    }
-
-    /**
-     * @param string $fileOrFolderPath
-     * @param string|array $permissions
-     */
-    protected function ensureFileOrFolderPermissions($fileOrFolderPath, $permissions)
-    {
-        if (!is_array($permissions)) {
-            chmod($fileOrFolderPath, octdec($permissions));
-        } else {
-            $fileOrFolderPermissions = fileperms($fileOrFolderPath);
-            $fileOrFolderPermissionArray = array_combine(
-                ['user', 'group', 'others'],
-                array_pad(str_split(decoct($fileOrFolderPermissions & 0777)), 3, 0)
-            );
-            foreach ($permissions as $key => $value) {
-                if (($fileOrFolderPermissionArray[$key] & $value) !== $value) {
-                    $fileOrFolderPermissionArray[$key] |= $value;
-                }
-            }
-            $newFileOrFolderPermissions = octdec(implode('', $fileOrFolderPermissionArray));
-            if (($fileOrFolderPermissions & $newFileOrFolderPermissions) !== $newFileOrFolderPermissions) {
-                chmod($fileOrFolderPath, $newFileOrFolderPermissions);
-            }
-        }
     }
 }
