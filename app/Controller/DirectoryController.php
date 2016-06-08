@@ -165,7 +165,7 @@ class DirectoryController
         if ($currentBranch !== $localBranchName) {
             $gitRepository->checkout(['track', ['B' => $localBranchName]], [$remoteBranchName]);
             $filemode = new Filemode();
-            $filemode->setUmask($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
+            $filemode->setPermissions($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
@@ -223,7 +223,7 @@ class DirectoryController
             $trackingInformation = $gitRepository->getTrackingInformation();
             if (!empty($trackingInformation['behind']) && !$gitRepository->hasChanges()) {
                 $gitRepository->pull(['ff-only']);
-                $filemode->setUmask($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
+                $filemode->setPermissions($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
             }
         }
 
@@ -254,7 +254,7 @@ class DirectoryController
         $gitRepository->reset(['hard'], [$branch]);
 
         $filemode = new Filemode();
-        $filemode->setUmask($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
+        $filemode->setPermissions($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
@@ -362,7 +362,7 @@ class DirectoryController
         }
 
         $filemode = new Filemode();
-        $filemode->setUmask($targetDirectory . $cloneDirectory, $settings['virtual-host']['umask']);
+        $filemode->setPermissions($targetDirectory . $cloneDirectory, $settings['virtual-host']['umask']);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
