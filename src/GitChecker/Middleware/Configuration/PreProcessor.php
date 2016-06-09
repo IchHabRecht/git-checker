@@ -1,6 +1,7 @@
 <?php
 namespace IchHabRecht\GitChecker\Middleware\Configuration;
 
+use IchHabRecht\Filesystem\Filepath;
 use IchHabRecht\GitChecker\Config\Processor;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -34,14 +35,16 @@ class PreProcessor
 
         $configuration = $request->getAttribute($this->configurationAttribute);
         if (!empty($configuration) && is_array($configuration)) {
+            $filepath = new Filepath();
             $route = $request->getAttribute('route');
 
-            $root = (!empty($configuration['root']) ? rtrim($configuration['root'], '/\\'): '');
-            $absoluteRoot = $root . DIRECTORY_SEPARATOR;
-            $virtualHost = rtrim($route->getArgument('virtualHost'), '/\\');
-            $absoluteVirtualHost = $absoluteRoot . $virtualHost . DIRECTORY_SEPARATOR;
-            $repository = rtrim($route->getArgument('repository'), '/\\');
-            $absoluteRepository = $absoluteVirtualHost . $repository . DIRECTORY_SEPARATOR;
+            if (empty($configuration['root'])) {
+                throw new \RuntimeException('Please configure "root" configuration in your settings.yml', 1465501654);
+            }
+
+            $root = $configuration['root'];
+            $virtualHost = (string)$route->getArgument('virtualHost');
+            $repository = (string)$route->getArgument('repository');
 
             $processor = new Processor($configuration);
             $processor->combine('virtual-host', 'default', $virtualHost);
@@ -49,11 +52,10 @@ class PreProcessor
             $request = $request
                 ->withAttribute($this->configurationAttribute, $processor->getConfiguration())
                 ->withAttribute('rootPath', $root)
-                ->withAttribute('absoluteRootPath', $absoluteRoot)
                 ->withAttribute('virtualHostPath', $virtualHost)
-                ->withAttribute('absoluteVirtualHostPath', $absoluteVirtualHost)
+                ->withAttribute('absoluteVirtualHostPath', $filepath->concatenate($root, $virtualHost))
                 ->withAttribute('repositoryPath', $repository)
-                ->withAttribute('absoluteRepositoryPath', $absoluteRepository);
+                ->withAttribute('absoluteRepositoryPath', $filepath->concatenate($root, $virtualHost, $repository));
         }
 
         return $next($request, $response);

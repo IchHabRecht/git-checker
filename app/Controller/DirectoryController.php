@@ -37,7 +37,7 @@ class DirectoryController
     public function index(Request $request, Response $response, array $arguments)
     {
         $settings = $request->getAttribute('settings');
-        $root = $request->getAttribute('absoluteRootPath');
+        $root = $request->getAttribute('rootPath');
 
         $finder = new Finder();
         $finder->directories()
@@ -85,7 +85,7 @@ class DirectoryController
         /** @var GitRepository $gitRepository */
         foreach ($repositoryFinder->getGitRepositories($absoluteVirtualHostPath, $settings['virtual-host']) as $gitRepository) {
             $repositories[] = [
-                'relativePath' => str_replace($absoluteVirtualHostPath, '', $gitRepository->getDirectory()),
+                'relativePath' => str_replace($absoluteVirtualHostPath . DIRECTORY_SEPARATOR, '', $gitRepository->getDirectory()),
                 'commit' => $gitRepository->log(['1', 'oneline']),
                 'status' => $gitRepository->getStatus(),
                 'trackingInformation' => $gitRepository->getTrackingInformation(),
