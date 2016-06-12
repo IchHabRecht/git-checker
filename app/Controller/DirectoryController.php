@@ -283,8 +283,8 @@ class DirectoryController
                 ];
             }, $settings['virtual-host']['add']['allow']);
         } else {
-            $folders = new Finder();
-            $folders->directories()
+            $finder = new Finder();
+            $finder->directories()
                 ->ignoreUnreadableDirs(true)
                 ->ignoreDotFiles(true)
                 ->ignoreVCS(true)
@@ -302,8 +302,11 @@ class DirectoryController
                 ? $settings['virtual-host']['add']['exclude']
                 : [];
             foreach (array_merge($excludeShowDirs, $excludeAddDirs) as $dir) {
-                $folders->notPath(strtr($dir, '\\', '/'));
+                $finder->notPath(strtr($dir, '\\', '/'));
             }
+
+            $folders = iterator_to_array($finder->getIterator());
+            array_unshift($folders, ['relativePathname' => '']);
         }
 
         $this->view->render(
