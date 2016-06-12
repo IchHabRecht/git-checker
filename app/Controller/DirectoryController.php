@@ -2,6 +2,7 @@
 namespace IchHabRecht\GitCheckerApp\Controller;
 
 use IchHabRecht\Filesystem\Filemode;
+use IchHabRecht\Filesystem\Filepath;
 use IchHabRecht\GitChecker\Finder\RepositoryFinder;
 use IchHabRecht\GitWrapper\GitRepository;
 use IchHabRecht\GitWrapper\GitWrapper;
@@ -275,15 +276,12 @@ class DirectoryController
             throw new \InvalidArgumentException('Wrong path provided', 1461609455);
         }
 
-        $folders = isset($settings['virtual-host']['add']['allow'])
-            ? $settings['virtual-host']['add']['allow']
-            : [];
-        if (!empty($folders)) {
-            array_walk($folders, function (&$value) {
-                $value = [
+        if (!empty($settings['virtual-host']['add']['allow'])) {
+            $folders = array_map(function ($value) {
+                return [
                     'relativePathname' => trim($value, '\\/'),
                 ];
-            });
+            }, $settings['virtual-host']['add']['allow']);
         } else {
             $folders = new Finder();
             $folders->directories()
@@ -297,10 +295,10 @@ class DirectoryController
                 })
                 ->in($absoluteVirtualHostPath);
 
-            $excludeShowDirs = isset($settings['virtual-host']['show']['exclude'])
+            $excludeShowDirs = !empty($settings['virtual-host']['show']['exclude'])
                 ? $settings['virtual-host']['show']['exclude']
                 : [];
-            $excludeAddDirs = isset($settings['virtual-host']['add']['exclude'])
+            $excludeAddDirs = !empty($settings['virtual-host']['add']['exclude'])
                 ? $settings['virtual-host']['add']['exclude']
                 : [];
             foreach (array_merge($excludeShowDirs, $excludeAddDirs) as $dir) {
@@ -340,21 +338,40 @@ class DirectoryController
         $settings = $request->getAttribute('settings');
         $absoluteVirtualHostPath = $request->getAttribute('absoluteVirtualHostPath');
 
-        $targetDirectory = $absoluteVirtualHostPath . trim($requestArguments['parent-directory'], '/\\') . DIRECTORY_SEPARATOR;
+        $filepath = new Filepath(DIRECTORY_SEPARATOR, true);
+        $parentDirectory = $filepath->normalize($requestArguments['parent-directory']);
+
+        if (!empty($settings['virtual-host']['add']['allow']) && !in_array($parentDirectory, $settings['virtual-host']['add']['allow'])) {
+            throw new \InvalidArgumentException('Unauthorized parent directory "' . $parentDirectory . '"', 1465751663);
+        }
+
+        $excludeShowDirs = !empty($settings['virtual-host']['show']['exclude'])
+            ? $settings['virtual-host']['show']['exclude']
+            : [];
+        $excludeAddDirs = !empty($settings['virtual-host']['add']['exclude'])
+            ? $settings['virtual-host']['add']['exclude']
+            : [];
+        foreach (array_merge($excludeShowDirs, $excludeAddDirs) as $dir) {
+            if (strpos($parentDirectory, $dir) !== false) {
+                throw new \InvalidArgumentException('Unauthorized parent directory "' . $parentDirectory . '"', 1465751917);
+            }
+        }
+
+        $targetDirectory = $filepath->concatenate($absoluteVirtualHostPath, $parentDirectory);
         if (!is_dir($targetDirectory)) {
             throw new \InvalidArgumentException('Parent directory "' . $targetDirectory . '" does net exist', 1461615365);
         }
 
         $cloneUrl = $requestArguments['clone-url'];
         $pathinfo = pathinfo($cloneUrl);
-        $cloneDirectory = trim($pathinfo['filename'], '/\\') . DIRECTORY_SEPARATOR;
+        $cloneDirectory = $filepath->concatenate($targetDirectory, $pathinfo['filename']);
 
-        if (is_dir($targetDirectory . $cloneDirectory)) {
-            throw new \InvalidArgumentException('Target directory "' . $targetDirectory . $cloneDirectory . '" does exist', 1461616033);
+        if (is_dir($cloneDirectory)) {
+            throw new \InvalidArgumentException('Target directory "' . $cloneDirectory . '" does exist', 1461616033);
         }
 
         $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
-        $gitRepository = $gitWrapper->cloneRepository($cloneUrl, $targetDirectory . $cloneDirectory);
+        $gitRepository = $gitWrapper->cloneRepository($cloneUrl, $cloneDirectory);
 
         if (!empty($requestArguments['branch-name'])) {
             $branchName = $requestArguments['branch-name'];
@@ -362,7 +379,7 @@ class DirectoryController
         }
 
         $filemode = new Filemode();
-        $filemode->setPermissions($targetDirectory . $cloneDirectory, $settings['virtual-host']['umask']);
+        $filemode->setPermissions($cloneDirectory, $settings['virtual-host']['umask']);
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
