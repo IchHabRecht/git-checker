@@ -195,7 +195,7 @@ class DirectoryController
             if (empty($trackingInformation['remoteBranch'])) {
                 continue;
             }
-            $gitRepository->fetch(['no-tags'], ['origin']);
+            $gitRepository->fetch(['no-tags', 'all']);
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
