@@ -26,7 +26,11 @@
                                         <p>
                                             {{ repository.relativePath }}
                                             <span class="label label-default">
-                                                {{ repository.trackingInformation.branch }}
+                                                {% if repository.trackingInformation.remoteBranch %}
+                                                    {{ repository.trackingInformation.remoteBranch }}
+                                                {% else %}
+                                                    {{ repository.trackingInformation.branch }}
+                                                {% endif %}
                                                 {% if not repository.status %}
                                                     <a href="{{ path_for('branch', { 'virtualHost': virtualHost, 'repository': forwardSlashedRelativePath }) }}" style="color: #fff"><span aria-hidden="true" class="glyphicon glyphicon-random" style="top: 2px"></span></a>
                                                 {% endif %}
