@@ -196,6 +196,8 @@ class DirectoryController
                 continue;
             }
             $gitRepository->fetch(['no-tags', 'all']);
+            $filemode = new Filemode();
+            $filemode->setPermissions(rtrim($gitRepository->getDirectory(), '/\\') . '/.git', $settings['virtual-host']['umask']);
         }
 
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
