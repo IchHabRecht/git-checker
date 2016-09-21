@@ -195,7 +195,7 @@ class DirectoryController
             if (empty($trackingInformation['remoteBranch'])) {
                 continue;
             }
-            $gitRepository->fetch(['no-tags', 'all']);
+            $gitRepository->fetch(['no-tags', 'all', 'prune']);
             $filemode = new Filemode();
             $filemode->setPermissions(rtrim($gitRepository->getDirectory(), '/\\') . '/.git', $settings['virtual-host']['umask']);
         }
