@@ -85,8 +85,14 @@ class DirectoryController
         $repositories = [];
         /** @var GitRepository $gitRepository */
         foreach ($repositoryFinder->getGitRepositories($absoluteVirtualHostPath, $settings['virtual-host']) as $gitRepository) {
+
+            $relativeRepositoryPath = str_replace($absoluteVirtualHostPath, '', $gitRepository->getDirectory());
+            if (!empty($relativeRepositoryPath) && $relativeRepositoryPath{0} === DIRECTORY_SEPARATOR) {
+                $relativeRepositoryPath = ltrim($relativeRepositoryPath, DIRECTORY_SEPARATOR);
+            }
+
             $repositories[] = [
-                'relativePath' => str_replace($absoluteVirtualHostPath . DIRECTORY_SEPARATOR, '', $gitRepository->getDirectory()),
+                'relativePath' => $relativeRepositoryPath,
                 'commit' => $gitRepository->log(['1', 'oneline']),
                 'status' => $gitRepository->getStatus(),
                 'trackingInformation' => $gitRepository->getTrackingInformation(),
