@@ -2,6 +2,27 @@
 
 {% block title %}Git Checker - {{ absoluteVirtualHostPath }}{% endblock %}
 
+{% block javascript %}
+    <script>
+        $(document).ready(function(){
+
+            $('html').on('click', function (e) {
+                //did not click a popover toggle, or icon in popover toggle, or popover
+                if ($(e.target).data('toggle') !== 'popover'
+                    && $(e.target).parents('[data-toggle="popover"]').length === 0
+                    && $(e.target).parents('.popover.in').length === 0) {
+                    $('[data-toggle="popover"]').popover('hide');
+                }
+            });
+
+            $('[data-toggle="popover"]').popover({
+                container: 'body',
+                placement: 'bottom'
+            });
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
     <div class="page-header">
         <h1>{{ absoluteVirtualHostPath }}</h1>
@@ -35,7 +56,37 @@
                                                     <a href="{{ path_for('branch', { 'virtualHost': virtualHost, 'repository': forwardSlashedRelativePath }) }}" style="color: #fff"><span aria-hidden="true" class="glyphicon glyphicon-random" style="top: 2px"></span></a>
                                                 {% endif %}
                                             </span>
-                                            <span><span class="badge">{{ repository.trackingInformation.behind }}</span></span>
+                                            <span>
+                                                {% if repository.trackingInformation.behind %}
+                                                    <a
+                                                        class="badge"
+                                                        href="#"
+                                                        data-toggle="popover"
+                                                        title="{{ repository.trackingInformation.behind }} commits behind"
+                                                        data-content="
+                                                        <table>
+                                                            {% for commit in repository.trackingInformation.log.behind|slice(0, 30) %}
+                                                                <tr>
+                                                                <td><b>{{ commit.hash }}</b> &nbsp;</td>
+                                                                <td>
+                                                                {% if commit.message|length > 150 %}
+                                                                    {{ commit.message[:150] }} ...
+                                                                {% else %}
+                                                                     {{ commit.message }}
+                                                                {% endif %}
+
+                                                                </td>
+                                                                <tr>
+                                                            {% endfor %}
+                                                        </table>
+                                                        " >
+                                                        {{ repository.trackingInformation.behind }}
+                                                    </a>
+                                                {% else %}
+                                                    <span class="badge">{{ repository.trackingInformation.behind }}</span>
+                                                {% endif %}
+
+                                            </span>
                                             {% if not repository.status %}
                                                 <span class="label label-success">clean</span>
                                             {% else %}
