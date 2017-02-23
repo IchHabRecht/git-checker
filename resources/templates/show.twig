@@ -65,12 +65,12 @@
                                                         title="{{ repository.trackingInformation.behind }} commits behind"
                                                         data-content="
                                                         <table>
-                                                            {% for commit in repository.trackingInformation.log.behind|slice(0, 30) %}
+                                                            {% for commit in repository.trackingInformation.log.behind|slice(0, 10) %}
                                                                 <tr>
                                                                 <td><b>{{ commit.hash }}</b> &nbsp;</td>
                                                                 <td>
-                                                                {% if commit.message|length > 150 %}
-                                                                    {{ commit.message[:150] }} ...
+                                                                {% if commit.message|length > 120 %}
+                                                                    {{ commit.message[:120] }} ...
                                                                 {% else %}
                                                                      {{ commit.message }}
                                                                 {% endif %}
