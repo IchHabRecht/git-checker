@@ -121,11 +121,15 @@ class DirectoryController
         $repositoryFinder = new RepositoryFinder($gitWrapper);
         $gitRepository = $repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host'])->getIterator()->current();
         $branches = $gitRepository->branch(['r']);
+        $tags = $gitRepository->tag(['l', 'sort=-v:refname']);
 
         // Remove all HEAD pointers
         $branches = array_filter($branches, function ($value) {
             return strpos($value, '/HEAD ') === false;
         });
+
+        // add tags string on every tag
+        array_walk($tags, function(&$value, $key) { $value = GitRepository::TAG_ORIGIN.'/'.$value; });
 
         $this->view->render(
             $response,
@@ -135,6 +139,7 @@ class DirectoryController
                 'absoluteVirtualHostPath' => $request->getAttribute('absoluteVirtualHostPath'),
                 'repository' => $request->getAttribute('repository'),
                 'branches' => $branches,
+                'tags' => $tags
             ]
         );
 
@@ -164,7 +169,14 @@ class DirectoryController
         $localBranchName = substr($remoteBranchName, strpos($remoteBranchName, '/') + 1);
         $currentBranch = $gitRepository->getCurrentBranch();
         if ($currentBranch !== $localBranchName) {
-            $gitRepository->checkout(['track', ['B' => $localBranchName]], [$remoteBranchName]);
+            if (strpos($remoteBranchName, GitRepository::TAG_ORIGIN.'/') !== false) {
+                // tags
+                $gitRepository->checkout([['B' => $localBranchName]], [$remoteBranchName]);
+            } else {
+                // branches
+                $gitRepository->checkout(['track', ['B' => $localBranchName]], [$remoteBranchName]);
+            }
+
             $filemode = new Filemode();
             $filemode->setPermissions($gitRepository->getDirectory(), $settings['virtual-host']['umask']);
         }
@@ -195,7 +207,7 @@ class DirectoryController
             if (empty($trackingInformation['remoteBranch'])) {
                 continue;
             }
-            $gitRepository->fetch(['no-tags', 'all', 'prune']);
+            $gitRepository->fetch(['tags', 'all', 'prune']);
             $filemode = new Filemode();
             $filemode->setPermissions(rtrim($gitRepository->getDirectory(), '/\\') . '/.git', $settings['virtual-host']['umask']);
         }
