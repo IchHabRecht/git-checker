@@ -122,6 +122,10 @@ class DirectoryController
         $gitRepository = $repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host'])->getIterator()->current();
         $branches = $gitRepository->branch(['r']);
         $tags = $gitRepository->tag(['l', 'sort=-v:refname']);
+        $currentBranch = $gitRepository->getCurrentBranch();
+
+        // remove heads/ prefix if it was an tag
+        $currentBranch = str_replace('heads/', '', $currentBranch);
 
         // Remove all HEAD pointers
         $branches = array_filter($branches, function ($value) {
@@ -135,6 +139,7 @@ class DirectoryController
             $response,
             'branch.twig',
             [
+                'currentBranch' => $currentBranch,
                 'virtualHost' => $request->getAttribute('virtualHostPath'),
                 'absoluteVirtualHostPath' => $request->getAttribute('absoluteVirtualHostPath'),
                 'repository' => $request->getAttribute('repository'),

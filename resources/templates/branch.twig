@@ -17,18 +17,20 @@
                     <h2 style="margin-top: 0">{{ repository }}</h2>
                     <form action="{{ path_for('checkout', { 'virtualHost': virtualHost, 'repository': repository }) }}" method="post">
                         <div class="form-group">
-                            <label for="branch-name">Branch / Tags</label>
+                            <label for="branch-name">Branch / Tag</label>
                             <select id="branch" name="branch-name" class="form-control">
                                 <optgroup label="branches">
                                 {% for branch in branches %}
-                                    <option value="{{ branch }}">{{ branch }}</option>
+                                    <option {{ branch ends with currentBranch ? 'selected' }} value="{{ branch }}">{{ branch }}</option>
                                 {% endfor %}
                                 </optgroup>
+                                {% if tags %}
                                 <optgroup label="tags">
                                     {% for tag in tags %}
-                                        <option value="{{ tag }}">{{ tag }}</option>
+                                        <option {{ tag ends with currentBranch ? 'selected'}} value="{{ tag }}">{{ tag }}</option>
                                     {% endfor %}
                                 </optgroup>
+                                {% endif %}
                             </select>
                         </div>
                         <button type="submit" class="btn btn-default">Submit</button>
