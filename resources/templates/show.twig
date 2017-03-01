@@ -58,9 +58,9 @@
                                             </span>
                                             <span>
                                                 {% if repository.trackingInformation.behind %}
-                                                    <a
+                                                    <span
                                                         class="badge"
-                                                        href="#"
+                                                        style="cursor: pointer;"
                                                         data-toggle="popover"
                                                         title="{{ repository.trackingInformation.behind }} commits behind"
                                                         data-content="
@@ -70,7 +70,7 @@
                                                                 <td><b>{{ commit.hash }}</b> &nbsp;</td>
                                                                 <td>
                                                                 {% if commit.message|length > 120 %}
-                                                                    {{ commit.message[:120] }} ...
+                                                                    <span title='{{ commit.message }}'>{{ commit.message[:120] }} ...</span>
                                                                 {% else %}
                                                                      {{ commit.message }}
                                                                 {% endif %}
@@ -81,7 +81,7 @@
                                                         </table>
                                                         " >
                                                         {{ repository.trackingInformation.behind }}
-                                                    </a>
+                                                    </span>
                                                 {% else %}
                                                     <span class="badge">{{ repository.trackingInformation.behind }}</span>
                                                 {% endif %}
