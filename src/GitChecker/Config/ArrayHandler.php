@@ -32,8 +32,8 @@ class ArrayHandler implements HandlerInterface
     /**
      * @param mixed $object
      * @param string $path
-     * @return mixed
      * @throws \RuntimeException
+     * @return mixed
      */
     protected function getValueByPath($object, $path)
     {
@@ -73,8 +73,8 @@ class ArrayHandler implements HandlerInterface
      * @param mixed $object
      * @param string $path
      * @param mixed $value
-     * @return mixed
      * @throws \RuntimeException
+     * @return mixed
      */
     protected function setValueByPath($object, $path, $value)
     {
