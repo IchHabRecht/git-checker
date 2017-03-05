@@ -5,4 +5,6 @@ public/fonts/
 var/cache/twig/*
 !var/cache/twig/.gitkeep
 vendor/
+.php_cs
+.php_cs.cache
 composer.lock
