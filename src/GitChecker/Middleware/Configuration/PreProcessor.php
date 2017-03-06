@@ -60,5 +60,4 @@ class PreProcessor
 
         return $next($request, $response);
     }
-
 }
