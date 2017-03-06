@@ -403,7 +403,9 @@ class DirectoryController
         if ($gitRepository->hasTrackingBranch()) {
             $localBranch = $gitRepository->getCurrentBranch();
             $remoteBranch = $gitRepository->getRemoteBranch();
-            $behindLog = $gitRepository->getBranchCommitsDiff($localBranch, $remoteBranch);
+            if (!empty($remoteBranch)) {
+                $behindLog = $gitRepository->getBranchCommitsDiff($localBranch, $remoteBranch);
+            }
         }
 
         $this->view->render(
