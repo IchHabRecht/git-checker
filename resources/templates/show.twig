@@ -15,9 +15,17 @@
                 }
             });
 
-            $('[data-toggle="popover"]').popover({
-                container: 'body',
-                placement: 'bottom'
+            $('[data-toggle="popover"]').click(function() {
+                var e = $(this);
+                e.off('hover');
+                $.get('http://git.local/show/aue/ajax/commits/typo3conf/ext/t3import_export', function(d) {
+                    e.popover({
+                        container: 'body',
+                        placement: 'bottom',
+                        template: '<div class="popover" style="max-width: 100%;" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>',
+                        content: d
+                    }).popover('show');
+                });
             });
         });
     </script>
@@ -61,25 +69,10 @@
                                                     <span
                                                         class="badge"
                                                         style="cursor: pointer;"
+                                                        data-html="true"
                                                         data-toggle="popover"
                                                         title="{{ repository.trackingInformation.behind }} commits behind"
-                                                        data-content="
-                                                        <table>
-                                                            {% for commit in repository.trackingInformation.log.behind|slice(0, 10) %}
-                                                                <tr>
-                                                                <td><b>{{ commit.hash }}</b> &nbsp;</td>
-                                                                <td>
-                                                                {% if commit.message|length > 120 %}
-                                                                    <span title='{{ commit.message }}'>{{ commit.message[:120] }} ...</span>
-                                                                {% else %}
-                                                                     {{ commit.message }}
-                                                                {% endif %}
-
-                                                                </td>
-                                                                <tr>
-                                                            {% endfor %}
-                                                        </table>
-                                                        " >
+                                                        data-content="" >
                                                         {{ repository.trackingInformation.behind }}
                                                     </span>
                                                 {% else %}

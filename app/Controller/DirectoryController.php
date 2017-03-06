@@ -389,6 +389,34 @@ class DirectoryController
         return $this->redirectTo('show', $response, ['virtualHost' => $arguments['virtualHost']]);
     }
 
+    public function ajaxCommitMessageDiff(Request $request, Response $response, array $arguments)
+    {
+        $settings = $request->getAttribute('settings');
+        $absolutePath = $request->getAttribute('absoluteRepositoryPath');
+
+        $gitWrapper = $this->getGitWrapper($settings['git-wrapper']);
+        $repositoryFinder = new RepositoryFinder($gitWrapper);
+        /** @var GitRepository $gitRepository */
+        $gitRepository = $repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host'])->getIterator()->current();
+
+        $behindLog = [];
+        if ($gitRepository->hasTrackingBranch()) {
+            $localBranch = $gitRepository->getCurrentBranch();
+            $remoteBranch = $gitRepository->getRemoteBranch();
+            $behindLog = $gitRepository->getBranchCommitsDiff($localBranch, $remoteBranch);
+        }
+
+        $this->view->render(
+            $response,
+            'ajaxCommit.twig',
+            [
+                'behindLog' => $behindLog,
+            ]
+        );
+
+        return $response;
+    }
+
     /**
      * @return App
      */

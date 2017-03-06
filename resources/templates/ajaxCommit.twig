@@ -1,0 +1,15 @@
+<table>
+    {% for commit in behindLog|slice(0, 10) %}
+    <tr>
+        <td><b>{{ commit.hash }}</b> &nbsp;</td>
+        <td>
+            {% if commit.message|length > 120 %}
+                <span title='{{ commit.message }}'>{{ commit.message[:120] }} ...</span>
+            {% else %}
+                {{ commit.message }}
+            {% endif %}
+
+        </td>
+    <tr>
+        {% endfor %}
+</table>
