@@ -133,7 +133,7 @@ class DirectoryController
         });
 
         // add tags string on every tag
-        array_walk($tags, function(&$value, $key) { $value = GitRepository::TAG_ORIGIN.'/'.$value; });
+        array_walk($tags, function(&$value, $key) { $value = 'tags/'.$value; });
 
         $this->view->render(
             $response,
