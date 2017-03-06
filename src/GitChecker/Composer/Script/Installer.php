@@ -33,6 +33,7 @@ class Installer
 
         $rootDirectory = __DIR__ . '/../../../../';
         static::copyFile('twbs/bootstrap', 'dist/css/bootstrap.min.css', $rootDirectory . 'public/css/bootstrap.min.css');
+        static::copyFile('twbs/bootstrap', 'dist/js/bootstrap.min.js', $rootDirectory . 'public/js/bootstrap.min.js');
         static::mirrorDirectory('twbs/bootstrap', 'dist/fonts', $rootDirectory . 'public/fonts');
         if (!file_exists($rootDirectory . 'app/settings.yml')) {
             static::getFileSystem()->copy($rootDirectory . 'app/settings.example.yml', $rootDirectory . 'app/settings.yml', true);
