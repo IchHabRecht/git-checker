@@ -133,7 +133,9 @@ class DirectoryController
         });
 
         // add tags string on every tag
-        array_walk($tags, function(&$value, $key) { $value = 'tags/'.$value; });
+        array_walk($tags, function(&$value, $key) {
+            $value = 'tags/' . $value;
+        });
 
         $this->view->render(
             $response,
@@ -144,7 +146,7 @@ class DirectoryController
                 'absoluteVirtualHostPath' => $request->getAttribute('absoluteVirtualHostPath'),
                 'repository' => $request->getAttribute('repository'),
                 'branches' => $branches,
-                'tags' => $tags
+                'tags' => $tags,
             ]
         );
 
@@ -174,7 +176,7 @@ class DirectoryController
         $localBranchName = substr($remoteBranchName, strpos($remoteBranchName, '/') + 1);
         $currentBranch = $gitRepository->getCurrentBranch();
         if ($currentBranch !== $localBranchName) {
-            if (strpos($remoteBranchName, GitRepository::TAG_ORIGIN.'/') !== false) {
+            if (strpos($remoteBranchName, 'tags' . '/') !== false) {
                 // tags
                 $gitRepository->checkout([['B' => $localBranchName]], [$remoteBranchName]);
             } else {
