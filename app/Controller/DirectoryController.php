@@ -121,7 +121,7 @@ class DirectoryController
         $repositoryFinder = new RepositoryFinder($gitWrapper);
         $gitRepository = $repositoryFinder->getGitRepositories($absolutePath, $settings['virtual-host'])->getIterator()->current();
         $branches = $gitRepository->branch(['r']);
-        $tags = $gitRepository->tag(['l', 'sort=-v:refname']);
+        $tags = array_reverse($gitRepository->tag(['l']));
         $currentBranch = $gitRepository->getCurrentBranch();
 
         // remove heads/ prefix if it was an tag
