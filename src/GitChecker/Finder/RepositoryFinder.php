@@ -58,7 +58,7 @@ class RepositoryFinder implements \IteratorAggregate
             : [];
         if (!empty($excludeDirs) && is_array($excludeDirs)) {
             foreach ($excludeDirs as $dir) {
-                $this->finder->notPath(strtr($dir, '\\', '/'));
+                $this->finder->exclude(strtr($dir, '\\', '/'));
             }
         }
 
