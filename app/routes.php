@@ -18,4 +18,6 @@ $app->group('/show/{virtualHost}', function () {
         ->setName('pull');
     $this->get('/reset/{repository:.+}', IchHabRecht\GitCheckerApp\Controller\DirectoryController::class . ':reset')
         ->setName('reset');
+    $this->get('/ajax/commits/{repository:.+}', IchHabRecht\GitCheckerApp\Controller\DirectoryController::class . ':ajaxCommitMessageDiff')
+        ->setName('reset');
 });

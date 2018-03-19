@@ -2,6 +2,35 @@
 
 {% block title %}Git Checker - {{ absoluteVirtualHostPath }}{% endblock %}
 
+{% block javascript %}
+    <script>
+        $(document).ready(function(){
+
+            $('html').on('click', function (e) {
+                //did not click a popover toggle, or icon in popover toggle, or popover
+                if ($(e.target).data('toggle') !== 'popover'
+                    && $(e.target).parents('[data-toggle="popover"]').length === 0
+                    && $(e.target).parents('.popover.in').length === 0) {
+                    $('[data-toggle="popover"]').popover('hide');
+                }
+            });
+
+            $('[data-toggle="popover"]').click(function() {
+                var e = $(this);
+                e.off('hover');
+                $.get('http://git.local/show/aue/ajax/commits/typo3conf/ext/t3import_export', function(d) {
+                    e.popover({
+                        container: 'body',
+                        placement: 'bottom',
+                        template: '<div class="popover" style="max-width: 100%;" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>',
+                        content: d
+                    }).popover('show');
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
     <div class="page-header">
         <h1>{{ absoluteVirtualHostPath }}</h1>
@@ -35,7 +64,22 @@
                                                     <a href="{{ path_for('branch', { 'virtualHost': virtualHost, 'repository': forwardSlashedRelativePath }) }}" style="color: #fff"><span aria-hidden="true" class="glyphicon glyphicon-random" style="top: 2px"></span></a>
                                                 {% endif %}
                                             </span>
-                                            <span><span class="badge">{{ repository.trackingInformation.behind }}</span></span>
+                                            <span>
+                                                {% if repository.trackingInformation.behind %}
+                                                    <span
+                                                        class="badge"
+                                                        style="cursor: pointer;"
+                                                        data-html="true"
+                                                        data-toggle="popover"
+                                                        title="{{ repository.trackingInformation.behind }} commits behind"
+                                                        data-content="" >
+                                                        {{ repository.trackingInformation.behind }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge">{{ repository.trackingInformation.behind }}</span>
+                                                {% endif %}
+
+                                            </span>
                                             {% if not repository.status %}
                                                 <span class="label label-success">clean</span>
                                             {% else %}

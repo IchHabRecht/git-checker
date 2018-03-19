@@ -1,6 +1,8 @@
 .idea
 app/settings.yml
 public/css/
+public/js/
+!public/js/jquery-3.1.1.min.js
 public/fonts/
 var/cache/twig/*
 !var/cache/twig/.gitkeep
